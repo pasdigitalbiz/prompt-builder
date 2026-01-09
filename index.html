@@ -1,18 +1,17 @@
-<!-- index.html VERSIONE AGGIORNATAA -->
 <!doctype html>
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Scrivi meglio con l’AI</title>
-    <meta name="description" content="Spiega cosa devi scrivere. Ottieni un testo pronto e una versione da incollare su ChatGPT." />
+    <title>Scrivi la tua richiesta, ottieni un prompt</title>
+    <meta name="description" content="Spiega cosa ti serve. Il tool trasforma la tua richiesta in un prompt chiaro da incollare su qualsiasi AI." />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header class="wrap header">
       <div>
-        <h1>Scrivi meglio con l’AI</h1>
-        <p class="sub">Spiega cosa devi scrivere. Ti preparo un testo pronto e, se vuoi, anche la versione da incollare su ChatGPT.</p>
+        <h1>Trasforma la tua richiesta in un prompt</h1>
+        <p class="sub">Scrivi cosa ti serve con parole tue. Ti restituisco un testo pronto da copiare e incollare su ChatGPT o qualsiasi AI.</p>
       </div>
       <div class="lang">
         <label for="lang">Lingua</label>
@@ -27,109 +26,58 @@
       <section class="card">
         <h2>Dimmi cosa ti serve</h2>
 
+        <label for="goal">1 Cosa vuoi ottenere</label>
+        <textarea id="goal" placeholder="Esempio: voglio scrivere un messaggio a un cliente per fissare una call e spiegare il valore della mia proposta"></textarea>
+
+        <label for="context">2 Che cosa hai già</label>
+        <textarea id="context" placeholder="Esempio: ho già queste informazioni, link, numeri, testo da riusare, vincoli, ecc. Se non hai nulla scrivi: niente"></textarea>
+
         <div class="row2">
           <div>
-            <label for="role">Tu sei</label>
-            <select id="role">
-              <option value="freelance">Freelance</option>
-              <option value="employee">Dipendente</option>
-              <option value="manager">Manager</option>
-              <option value="founder">Imprenditore</option>
+            <label for="mustInclude">3 Cosa deve includere</label>
+            <textarea id="mustInclude" placeholder="Una voce per riga&#10;3 punti chiave&#10;una call to action&#10;un riepilogo finale"></textarea>
+          </div>
+          <div>
+            <label for="mustAvoid">4 Cosa deve evitare</label>
+            <textarea id="mustAvoid" placeholder="Una voce per riga&#10;toni aggressivi&#10;frasi vaghe&#10;promesse non verificabili"></textarea>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="format">5 Come vuoi il risultato</label>
+            <select id="format">
+              <option value="plain" selected>Testo semplice</option>
+              <option value="steps">Passi da seguire</option>
+              <option value="bullets">Elenco puntato</option>
+              <option value="table">Tabella</option>
+              <option value="email">Email pronta</option>
+              <option value="post">Post social</option>
               <option value="other">Altro</option>
             </select>
           </div>
-
           <div>
-            <label for="recipient">Destinatario</label>
-            <select id="recipient">
-              <option value="client">Cliente</option>
-              <option value="recruiter">Recruiter</option>
-              <option value="colleague">Collega</option>
-              <option value="manager">Responsabile</option>
-              <option value="lead">Potenziale cliente</option>
-              <option value="other">Altro</option>
+            <label for="detail">Livello di dettaglio</label>
+            <select id="detail">
+              <option value="fast">Veloce</option>
+              <option value="normal" selected>Normale</option>
+              <option value="deep">Molto dettagliato</option>
             </select>
           </div>
         </div>
 
-        <div class="row2">
-          <div>
-            <label for="goal">Cosa vuoi ottenere</label>
-            <select id="goal">
-              <option value="book_call">Fissare una call</option>
-              <option value="follow_up">Fare un follow up</option>
-              <option value="send_quote">Inviare un preventivo</option>
-              <option value="answer_complaint">Rispondere a un reclamo</option>
-              <option value="request_info">Chiedere informazioni</option>
-              <option value="other">Altro</option>
-            </select>
-          </div>
+        <label for="audience">A chi è destinato il risultato</label>
+        <input id="audience" type="text" placeholder="Esempio: cliente potenziale, collega, pubblico generico. Se non importa lascia vuoto." />
 
-          <div>
-            <label for="tone">Che stile vuoi</label>
-            <select id="tone">
-              <option value="professional">Professionale</option>
-              <option value="friendly">Amichevole</option>
-              <option value="direct">Diretto</option>
-              <option value="persuasive">Convincente</option>
-              <option value="neutral">Neutro</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row2">
-          <div>
-            <label for="length">Quanto lungo</label>
-            <select id="length">
-              <option value="short">Breve</option>
-              <option value="medium" selected>Medio</option>
-              <option value="long">Più lungo</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="name">Firma</label>
-            <input id="name" type="text" value="Nome Cognome" />
-          </div>
-        </div>
-
-        <label for="topic">Spiega in una frase di cosa si tratta</label>
-        <input id="topic" type="text" placeholder="Esempio: proposta collaborazione per il Q1" />
-
-        <div class="row2">
-          <div>
-            <label for="mustInclude">Cose importanti da dire</label>
-            <textarea id="mustInclude" placeholder="Una voce per riga&#10;Benefici&#10;Tempistiche&#10;Link portfolio"></textarea>
-          </div>
-          <div>
-            <label for="mustAvoid">Cose da NON dire</label>
-            <textarea id="mustAvoid" placeholder="Una voce per riga&#10;Frasi vaghe&#10;Tono aggressivo"></textarea>
-          </div>
-        </div>
-
-        <label for="extraInfo">Dettagli utili (opzionale)</label>
-        <textarea id="extraInfo" placeholder="Numeri, link, contesto, prezzi, date"></textarea>
-
-        <div class="checks">
-          <label class="check">
-            <input id="cta" type="checkbox" checked />
-            Voglio una richiesta finale chiara
-          </label>
-          <label class="check">
-            <input id="clarify" type="checkbox" checked />
-            Se manca qualcosa, fai domande prima di scrivere
-          </label>
-        </div>
-
-        <div class="hint">Suggerimento: 3 a 5 punti bastano. Più è semplice, meglio funziona.</div>
+        <div class="hint">Suggerimento: se scrivi 2 righe in più su contesto e vincoli, la qualità aumenta molto.</div>
       </section>
 
       <section class="card">
         <div class="topline">
-          <h2 id="outputTitle">Testo pronto</h2>
+          <h2 id="outputTitle">Da incollare su AI</h2>
           <div class="variant">
-            <button class="pill active" id="tabReady" type="button">Testo pronto</button>
-            <button class="pill" id="tabPrompt" type="button">Da incollare su AI</button>
+            <button class="pill active" id="tabPrompt" type="button">Da incollare su AI</button>
+            <button class="pill" id="tabCheck" type="button">Check rapido</button>
           </div>
         </div>
 
@@ -141,7 +89,7 @@
         </div>
 
         <p class="small">
-          Puoi usare il testo qui sopra così com’è. Se preferisci usare ChatGPT o un’altra AI, passa alla tab “Da incollare su AI”.
+          Consiglio: incolla il prompt e poi aggiungi eventuali dettagli. Se vuoi, puoi chiedere all’AI di farti prima 3 domande.
         </p>
       </section>
     </main>
