@@ -1,0 +1,151 @@
+<!-- index.html VERSIONE AGGIORNATA -->
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Scrivi meglio con l’AI</title>
+    <meta name="description" content="Spiega cosa devi scrivere. Ottieni un testo pronto e una versione da incollare su ChatGPT." />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="wrap header">
+      <div>
+        <h1>Scrivi meglio con l’AI</h1>
+        <p class="sub">Spiega cosa devi scrivere. Ti preparo un testo pronto e, se vuoi, anche la versione da incollare su ChatGPT.</p>
+      </div>
+      <div class="lang">
+        <label for="lang">Lingua</label>
+        <select id="lang">
+          <option value="it" selected>Italiano</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </header>
+
+    <main class="wrap grid">
+      <section class="card">
+        <h2>Dimmi cosa ti serve</h2>
+
+        <div class="row2">
+          <div>
+            <label for="role">Tu sei</label>
+            <select id="role">
+              <option value="freelance">Freelance</option>
+              <option value="employee">Dipendente</option>
+              <option value="manager">Manager</option>
+              <option value="founder">Imprenditore</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="recipient">Destinatario</label>
+            <select id="recipient">
+              <option value="client">Cliente</option>
+              <option value="recruiter">Recruiter</option>
+              <option value="colleague">Collega</option>
+              <option value="manager">Responsabile</option>
+              <option value="lead">Potenziale cliente</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="goal">Cosa vuoi ottenere</label>
+            <select id="goal">
+              <option value="book_call">Fissare una call</option>
+              <option value="follow_up">Fare un follow up</option>
+              <option value="send_quote">Inviare un preventivo</option>
+              <option value="answer_complaint">Rispondere a un reclamo</option>
+              <option value="request_info">Chiedere informazioni</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="tone">Che stile vuoi</label>
+            <select id="tone">
+              <option value="professional">Professionale</option>
+              <option value="friendly">Amichevole</option>
+              <option value="direct">Diretto</option>
+              <option value="persuasive">Convincente</option>
+              <option value="neutral">Neutro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="length">Quanto lungo</label>
+            <select id="length">
+              <option value="short">Breve</option>
+              <option value="medium" selected>Medio</option>
+              <option value="long">Più lungo</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="name">Firma</label>
+            <input id="name" type="text" value="Nome Cognome" />
+          </div>
+        </div>
+
+        <label for="topic">Spiega in una frase di cosa si tratta</label>
+        <input id="topic" type="text" placeholder="Esempio: proposta collaborazione per il Q1" />
+
+        <div class="row2">
+          <div>
+            <label for="mustInclude">Cose importanti da dire</label>
+            <textarea id="mustInclude" placeholder="Una voce per riga&#10;Benefici&#10;Tempistiche&#10;Link portfolio"></textarea>
+          </div>
+          <div>
+            <label for="mustAvoid">Cose da NON dire</label>
+            <textarea id="mustAvoid" placeholder="Una voce per riga&#10;Frasi vaghe&#10;Tono aggressivo"></textarea>
+          </div>
+        </div>
+
+        <label for="extraInfo">Dettagli utili (opzionale)</label>
+        <textarea id="extraInfo" placeholder="Numeri, link, contesto, prezzi, date"></textarea>
+
+        <div class="checks">
+          <label class="check">
+            <input id="cta" type="checkbox" checked />
+            Voglio una richiesta finale chiara
+          </label>
+          <label class="check">
+            <input id="clarify" type="checkbox" checked />
+            Se manca qualcosa, fai domande prima di scrivere
+          </label>
+        </div>
+
+        <div class="hint">Suggerimento: 3 a 5 punti bastano. Più è semplice, meglio funziona.</div>
+      </section>
+
+      <section class="card">
+        <div class="topline">
+          <h2 id="outputTitle">Testo pronto</h2>
+          <div class="variant">
+            <button class="pill active" id="tabReady" type="button">Testo pronto</button>
+            <button class="pill" id="tabPrompt" type="button">Da incollare su AI</button>
+          </div>
+        </div>
+
+        <pre id="output" class="output"></pre>
+
+        <div class="actions">
+          <button id="copy" type="button">Copia</button>
+          <span id="copied" class="copied" aria-live="polite"></span>
+        </div>
+
+        <p class="small">
+          Puoi usare il testo qui sopra così com’è. Se preferisci usare ChatGPT o un’altra AI, passa alla tab “Da incollare su AI”.
+        </p>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
