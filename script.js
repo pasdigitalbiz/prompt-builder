@@ -446,30 +446,41 @@
   function setGeneratedState(on) {
     els.copy.disabled = !on;
   }
+function generate() {
+  clearStatus();
 
-  function generate() {
-    clearStatus();
+  const lang = els.lang ? els.lang.value : "it";
+  const t = i18n[lang];
 
-    const lang = els.lang ? els.lang.value : "it";
-    const t = i18n[lang];
-
-    const missing = missingFields();
-    if (missing.length > 0) {
-      const ok = window.confirm(t.warnBody);
-      if (!ok) return;
-    }
-
-    const prompt = buildPrompt(lang);
-    els.output.textContent = prompt;
-    setGeneratedState(true);
-
-    if (els.status) {
-      els.status.textContent = t.generated;
-      setTimeout(() => {
-        if (els.status) els.status.textContent = "";
-      }, 1200);
-    }
+  // BLOCCO DURO: goal obbligatorio
+  if (!v(els.goal)) {
+    alert(
+      lang === "it"
+        ? "Devi compilare il campo “Cosa vuoi ottenere” per generare il prompt."
+        : "You must fill in the field “What do you want to achieve” to generate the prompt."
+    );
+    return;
   }
+
+  // Avviso soft se mancano altri campi
+  const missing = missingFields().filter((f) => f !== "goal");
+  if (missing.length > 0) {
+    const ok = window.confirm(t.warnBody);
+    if (!ok) return;
+  }
+
+  const prompt = buildPrompt(lang);
+  els.output.textContent = prompt;
+  setGeneratedState(true);
+
+  if (els.status) {
+    els.status.textContent = t.generated;
+    setTimeout(() => {
+      if (els.status) els.status.textContent = "";
+    }, 1200);
+  }
+}
+
 
   async function copyOutput() {
     clearStatus();
