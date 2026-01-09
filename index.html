@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Prompt Builder</title>
+    <meta name="description" content="Tool gratuito per creare prompt copiabili per qualsiasi AI" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="wrap header">
+      <div>
+        <h1>Prompt Builder</h1>
+        <p class="sub">Compila i campi e ottieni un prompt copiabile da usare su qualsiasi AI. Nessuna API.</p>
+      </div>
+      <div class="lang">
+        <label for="lang">Lingua</label>
+        <select id="lang">
+          <option value="it" selected>Italiano</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </header>
+
+    <main class="wrap grid">
+      <section class="card">
+        <h2>Campi</h2>
+
+        <div class="row2">
+          <div>
+            <label for="role">Tu sei</label>
+            <select id="role">
+              <option value="freelance">Freelance</option>
+              <option value="employee">Dipendente</option>
+              <option value="manager">Manager</option>
+              <option value="founder">Founder</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="recipient">Destinatario</label>
+            <select id="recipient">
+              <option value="client">Cliente</option>
+              <option value="recruiter">Recruiter</option>
+              <option value="colleague">Collega</option>
+              <option value="manager">Manager</option>
+              <option value="lead">Lead</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="goal">Obiettivo</label>
+            <select id="goal">
+              <option value="book_call">Fissare una call</option>
+              <option value="follow_up">Follow up</option>
+              <option value="send_quote">Inviare un preventivo</option>
+              <option value="answer_complaint">Rispondere a un reclamo</option>
+              <option value="request_info">Richiedere info</option>
+              <option value="other">Altro</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="tone">Tono</label>
+            <select id="tone">
+              <option value="professional">Professionale</option>
+              <option value="friendly">Amichevole</option>
+              <option value="direct">Diretto</option>
+              <option value="persuasive">Persuasivo</option>
+              <option value="neutral">Neutro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="length">Lunghezza</label>
+            <select id="length">
+              <option value="short">Corta</option>
+              <option value="medium" selected>Media</option>
+              <option value="long">Lunga</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="name">Firma</label>
+            <input id="name" type="text" value="Nome Cognome" />
+          </div>
+        </div>
+
+        <label for="topic">Argomento in una frase</label>
+        <input id="topic" type="text" placeholder="Esempio: proposta collaborazione Q1" />
+
+        <div class="row2">
+          <div>
+            <label for="mustInclude">Punti da includere</label>
+            <textarea id="mustInclude" placeholder="Una voce per riga&#10;Benefici&#10;Proposta orari&#10;Link portfolio"></textarea>
+          </div>
+          <div>
+            <label for="mustAvoid">Da evitare</label>
+            <textarea id="mustAvoid" placeholder="Una voce per riga&#10;Frasi vaghe&#10;Tono aggressivo"></textarea>
+          </div>
+        </div>
+
+        <label for="extraInfo">Informazioni utili (opzionale)</label>
+        <textarea id="extraInfo" placeholder="Dettagli, numeri, link, contesto"></textarea>
+
+        <div class="checks">
+          <label class="check">
+            <input id="cta" type="checkbox" checked />
+            Includi call to action
+          </label>
+          <label class="check">
+            <input id="clarify" type="checkbox" checked />
+            Se mancano info, fai domande prima di scrivere l’email
+          </label>
+        </div>
+
+        <div class="hint">Suggerimento: tieni le liste corte. 3 a 5 punti massimo.</div>
+      </section>
+
+      <section class="card">
+        <div class="topline">
+          <h2>Prompt</h2>
+          <div class="variant">
+            <span>Variante</span>
+            <button class="pill active" data-variant="standard" type="button">Standard</button>
+            <button class="pill" data-variant="short" type="button">Breve</button>
+            <button class="pill" data-variant="detailed" type="button">Dettagliata</button>
+          </div>
+        </div>
+
+        <pre id="output" class="output"></pre>
+
+        <div class="actions">
+          <button id="copy" type="button">Copia prompt</button>
+          <span id="copied" class="copied" aria-live="polite"></span>
+        </div>
+
+        <p class="small">
+          Nota: questo tool non genera la risposta AI. Genera un prompt strutturato da copiare e incollare.
+        </p>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
