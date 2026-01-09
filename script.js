@@ -1,26 +1,27 @@
 (function () {
   const $ = (id) => document.getElementById(id);
 
-  function must(id) {
-    const el = $(id);
-    return el || null;
+  function el(id) {
+    return $(id) || null;
   }
 
   const els = {
-    lang: must("lang"),
-    goal: must("goal"),
-    context: must("context"),
-    mustInclude: must("mustInclude"),
-    mustAvoid: must("mustAvoid"),
-    format: must("format"),
-    detail: must("detail"),
-    audience: must("audience"),
-    output: must("output"),
-    outputTitle: must("outputTitle"),
-    copy: must("copy"),
-    copied: must("copied"),
-    tabPrompt: must("tabPrompt"),
-    tabCheck: must("tabCheck"),
+    lang: el("lang"),
+    goal: el("goal"),
+    context: el("context"),
+    mustInclude: el("mustInclude"),
+    mustAvoid: el("mustAvoid"),
+    format: el("format"),
+    detail: el("detail"),
+    audience: el("audience"),
+
+    output: el("output"),
+    outputTitle: el("outputTitle"),
+    copy: el("copy"),
+    copied: el("copied"),
+
+    tabPrompt: el("tabPrompt"),
+    tabCheck: el("tabCheck"),
   };
 
   if (!els.output) return;
@@ -45,7 +46,7 @@
       outputHeader: "FORMATO OUTPUT",
 
       baseRole:
-        "Sei un assistente esperto e pragmatico. Il tuo compito è aiutarmi a ottenere un risultato concreto e utilizzabile.",
+        "Sei un assistente esperto e pragmatico. Il tuo compito è aiutare l’utente a ottenere un risultato concreto e utilizzabile.",
       noInvent:
         "Non inventare dati, nomi, numeri o promesse. Se qualcosa non è noto, dichiaralo esplicitamente oppure usa segnaposto chiari tra parentesi quadre.",
       askThenAnswer:
@@ -91,7 +92,7 @@
       outputHeader: "OUTPUT FORMAT",
 
       baseRole:
-        "You are an expert, pragmatic assistant. Your task is to help me achieve a concrete, usable outcome.",
+        "You are an expert, pragmatic assistant. Your task is to help the user achieve a concrete, usable outcome.",
       noInvent:
         "Do not invent data, names, numbers, or promises. If something is unknown, say so clearly or use clear placeholders in square brackets.",
       askThenAnswer:
@@ -121,23 +122,18 @@
     },
   };
 
-  function v(el) {
-    return el ? String(el.value || "").trim() : "";
+  function val(e) {
+    return e ? String(e.value || "").trim() : "";
   }
 
-  function list(el) {
-    const raw = v(el);
+  function listFromTextarea(e) {
+    const raw = val(e);
     if (!raw) return [];
     return raw
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean)
       .slice(0, 8);
-  }
-
-  function formatBlock(title, lines) {
-    const safe = (lines || []).filter(Boolean);
-    return [title, ...safe].join("\n");
   }
 
   function normalize(str) {
@@ -147,15 +143,27 @@
       .trim();
   }
 
-  function isVagueRequest(goalText) {
+  function isPlaceholderOrEmpty(goalText, lang) {
     const g = normalize(goalText);
-
     if (!g) return true;
 
-    // Heuristics: too short
+    const placeholdersIt = ["descrivi cosa vuoi ottenere.", "descrivi cosa vuoi ottenere", "scrivi cosa ti serve", "scrivi cosa vuoi"];
+    const placeholdersEn = ["describe what you want to achieve.", "describe what you want to achieve", "write what you need"];
+
+    const placeholders = lang === "it" ? placeholdersIt : placeholdersEn;
+
+    if (placeholders.includes(g)) return true;
+
+    if (g.length < 3) return true;
+
+    return false;
+  }
+
+  function isVagueRequest(goalText) {
+    const g = normalize(goalText);
+    if (!g) return true;
     if (g.length < 18) return true;
 
-    // Very generic intents
     const genericPhrases = [
       "scrivere una mail",
       "scrivere una email",
@@ -179,17 +187,12 @@
       "email",
     ];
 
-    // Exact or near exact generic
     if (genericPhrases.includes(g)) return true;
 
-    // Generic verb without object
     const genericRegex = /^(scrivi|scrivere|crea|creare|prepara|fare|fammi|aiutami)\b$/i;
     if (genericRegex.test(g)) return true;
 
-    // "scrivere" without clear object (very likely vague)
     if (/\bscrivere\b/.test(g) && g.split(" ").length <= 4) return true;
-
-    // "testo" without qualifier
     if (/\btesto\b/.test(g) && g.split(" ").length <= 4) return true;
 
     return false;
@@ -198,7 +201,6 @@
   function classifyIntent(goalText) {
     const g = normalize(goalText);
 
-    // Writing intents
     if (/\b(email|mail)\b/.test(g)) return "email";
     if (/\b(post|instagram|linkedin|facebook|tiktok)\b/.test(g)) return "post";
     if (/\btesto\b/.test(g)) return "text";
@@ -206,17 +208,43 @@
     if (/\briassumi|riassunto|summary\b/.test(g)) return "summary";
     if (/\bidea|idee|brainstorm\b/.test(g)) return "ideas";
 
-    // Default
     return "generic";
   }
 
+  function buildUserRequest(lang, goalText) {
+    const g = (goalText || "").trim();
+
+    if (isPlaceholderOrEmpty(g, lang)) {
+      return lang === "it"
+        ? "L’utente non è riuscito a spiegare chiaramente cosa vuole ottenere. Ha bisogno di aiuto per chiarire la richiesta e identificare l’obiettivo finale."
+        : "The user was not able to clearly explain what they want to achieve. They need help clarifying the request and identifying the final goal.";
+    }
+
+    return g;
+  }
+
   function buildAutoInterpretation(lang, goalText, formatKey) {
-    const isVague = isVagueRequest(goalText);
-    const intent = classifyIntent(goalText);
+    const g = (goalText || "").trim();
     const fmt = (formatKey || "plain").toLowerCase();
 
-    if (!isVague) {
-      // Even if not vague, we can add a light clarification line only when useful
+    if (isPlaceholderOrEmpty(g, lang)) {
+      return lang === "it"
+        ? [
+            "La richiesta dell’utente è assente o troppo poco chiara.",
+            "Il primo obiettivo è capire cosa l’utente vuole ottenere con una domanda alla volta, molto semplice.",
+            "Poi proponi un risultato utile e migliorabile, coerente con il formato richiesto.",
+          ].join("\n")
+        : [
+            "The user request is missing or too unclear.",
+            "Your first goal is to understand what the user wants to achieve, one simple question at a time.",
+            "Then provide a useful, improvable result in the requested format.",
+          ].join("\n");
+    }
+
+    const vague = isVagueRequest(goalText);
+    const intent = classifyIntent(goalText);
+
+    if (!vague) {
       return lang === "it"
         ? "Se serve, chiedi chiarimenti solo su informazioni strettamente necessarie."
         : "If needed, ask clarifications only for strictly necessary information.";
@@ -227,7 +255,7 @@
         return [
           "La richiesta dell’utente è generica.",
           "Interpretala come: aiutare a creare una email pronta da inviare, chiara e professionale.",
-          "Se mancano informazioni essenziali (destinatario, obiettivo, contesto), fai prima fino a 3 domande mirate.",
+          "Se mancano informazioni essenziali come destinatario, obiettivo e contesto, fai prima fino a 3 domande mirate.",
         ].join("\n");
       }
 
@@ -235,7 +263,7 @@
         return [
           "La richiesta dell’utente è generica.",
           "Interpretala come: aiutare a creare un post social chiaro, coerente e utilizzabile.",
-          "Se mancano informazioni essenziali (piattaforma, obiettivo, pubblico), fai prima fino a 3 domande mirate.",
+          "Se mancano informazioni essenziali come piattaforma, obiettivo e pubblico, fai prima fino a 3 domande mirate.",
         ].join("\n");
       }
 
@@ -259,7 +287,7 @@
         return [
           "La richiesta dell’utente è generica.",
           "Interpretala come: generare idee pratiche e utilizzabili, con criteri e prossimi passi.",
-          "Se manca il contesto (settore, vincoli, obiettivo), fai prima fino a 3 domande mirate.",
+          "Se manca il contesto come settore, vincoli e obiettivo, fai prima fino a 3 domande mirate.",
         ].join("\n");
       }
 
@@ -270,12 +298,11 @@
       ].join("\n");
     }
 
-    // EN
     if (intent === "email" || fmt === "email") {
       return [
         "The user request is generic.",
         "Interpret it as: help create a ready to send email, clear and professional.",
-        "If essential information is missing (recipient, goal, context), ask up to 3 targeted questions first.",
+        "If essential information is missing such as recipient, goal, and context, ask up to 3 targeted questions first.",
       ].join("\n");
     }
 
@@ -283,7 +310,7 @@
       return [
         "The user request is generic.",
         "Interpret it as: help create a usable social post, clear and consistent.",
-        "If essential information is missing (platform, goal, audience), ask up to 3 targeted questions first.",
+        "If essential information is missing such as platform, goal, and audience, ask up to 3 targeted questions first.",
       ].join("\n");
     }
 
@@ -307,7 +334,7 @@
       return [
         "The user request is generic.",
         "Interpret it as: generate practical ideas with criteria and next steps.",
-        "If context is missing (industry, constraints, goal), ask up to 3 targeted questions first.",
+        "If context is missing such as industry, constraints, and goal, ask up to 3 targeted questions first.",
       ].join("\n");
     }
 
@@ -318,30 +345,30 @@
     ].join("\n");
   }
 
+  function block(title, lines) {
+    const safe = (lines || []).filter(Boolean);
+    return [title, ...safe].join("\n");
+  }
+
   function buildPrompt(lang) {
     const t = i18n[lang];
 
-    const goal = v(els.goal);
-    const context = v(els.context);
-    const include = list(els.mustInclude);
-    const avoid = list(els.mustAvoid);
-    const audience = v(els.audience);
+    const goalRaw = val(els.goal);
+    const context = val(els.context);
+    const include = listFromTextarea(els.mustInclude);
+    const avoid = listFromTextarea(els.mustAvoid);
+    const audience = val(els.audience);
 
     const formatKey = els.format ? els.format.value : "plain";
     const detailKey = els.detail ? els.detail.value : "normal";
 
-    const userRequest =
-      goal ||
-      (lang === "it"
-        ? "Descrivi cosa vuoi ottenere."
-        : "Describe what you want to achieve.");
+    const userRequest = buildUserRequest(lang, goalRaw);
+    const autoInterpretation = buildAutoInterpretation(lang, goalRaw, formatKey);
 
-    const autoInterpretation = buildAutoInterpretation(lang, goal, formatKey);
+    const parts = [];
 
-    const blocks = [];
-
-    blocks.push(
-      formatBlock(t.promptHeader, [
+    parts.push(
+      block(t.promptHeader, [
         t.baseRole,
         t.noInvent,
         t.askThenAnswer,
@@ -353,100 +380,87 @@
       ])
     );
 
-    blocks.push("");
+    parts.push("");
+    parts.push(block(t.interpretationHeader, [autoInterpretation]));
+    parts.push("");
 
-    blocks.push(
-      formatBlock(t.interpretationHeader, [autoInterpretation])
-    );
+    const contextLine = context
+      ? lang === "it"
+        ? `Contesto e dati che l’utente ha già: ${context}`
+        : `Context and data the user already has: ${context}`
+      : lang === "it"
+        ? "Contesto e dati che l’utente ha già: nessuno."
+        : "Context and data the user already has: none.";
 
-    blocks.push("");
+    const audienceLine = audience
+      ? lang === "it"
+        ? `Destinatario o pubblico: ${audience}.`
+        : `Audience or recipient: ${audience}.`
+      : "";
 
-    blocks.push(
-      formatBlock(t.userHeader, [
+    parts.push(
+      block(t.userHeader, [
         userRequest,
-        audience
-          ? lang === "it"
-            ? `Destinatario o pubblico: ${audience}.`
-            : `Audience or recipient: ${audience}.`
-          : "",
-        context
-          ? lang === "it"
-            ? `Contesto e dati che ho già: ${context}`
-            : `Context and data I already have: ${context}`
-          : lang === "it"
-            ? "Contesto e dati che ho già: nessuno."
-            : "Context and data I already have: none.",
+        audienceLine,
+        contextLine,
       ])
     );
 
-    blocks.push("");
+    parts.push("");
 
-    blocks.push(
-      formatBlock(t.constraintsHeader, [
-        include.length
-          ? lang === "it"
-            ? `Deve includere: ${include.join("; ")}.`
-            : `Must include: ${include.join("; ")}.`
-          : lang === "it"
-            ? `Deve includere: ${t.none}.`
-            : `Must include: ${t.none}.`,
-        avoid.length
-          ? lang === "it"
-            ? `Deve evitare: ${avoid.join("; ")}.`
-            : `Must avoid: ${avoid.join("; ")}.`
-          : lang === "it"
-            ? `Deve evitare: ${t.none}.`
-            : `Must avoid: ${t.none}.`,
-      ])
-    );
+    const includeLine = include.length
+      ? lang === "it"
+        ? `Deve includere: ${include.join("; ")}.`
+        : `Must include: ${include.join("; ")}.`
+      : lang === "it"
+        ? `Deve includere: ${t.none}.`
+        : `Must include: ${t.none}.`;
 
-    blocks.push("");
+    const avoidLine = avoid.length
+      ? lang === "it"
+        ? `Deve evitare: ${avoid.join("; ")}.`
+        : `Must avoid: ${avoid.join("; ")}.`
+      : lang === "it"
+        ? `Deve evitare: ${t.none}.`
+        : `Must avoid: ${t.none}.`;
 
-    blocks.push(
-      formatBlock(t.outputHeader, [
+    parts.push(block(t.constraintsHeader, [includeLine, avoidLine]));
+    parts.push("");
+
+    const formatLines = [
+      lang === "it"
+        ? `Formato richiesto: ${t.formatMap[formatKey]}.`
+        : `Required format: ${t.formatMap[formatKey]}.`,
+    ];
+
+    if (formatKey === "other") {
+      formatLines.push(
         lang === "it"
-          ? `Formato richiesto: ${t.formatMap[formatKey]}.`
-          : `Required format: ${t.formatMap[formatKey]}.`,
-        formatKey === "other"
-          ? lang === "it"
-            ? "Se il formato non è chiaro, fammi 1 domanda di chiarimento sul formato prima di rispondere."
-            : "If the format is unclear, ask me 1 clarifying question about the format before answering."
-          : "",
-      ])
-    );
+          ? "Se il formato non è chiaro, fai 1 domanda di chiarimento sul formato prima di rispondere."
+          : "If the format is unclear, ask 1 clarifying question about the format before answering."
+      );
+    }
 
-    return blocks.join("\n\n");
+    parts.push(block(t.outputHeader, formatLines));
+
+    return parts.join("\n\n");
   }
 
   function buildCheck(lang) {
     const t = i18n[lang];
 
-    const goal = v(els.goal);
-    const context = v(els.context);
-    const include = list(els.mustInclude);
+    const goalRaw = val(els.goal);
+    const context = val(els.context);
+    const include = listFromTextarea(els.mustInclude);
 
     const checks = [];
-
     checks.push(t.checkTitle);
     checks.push("");
 
-    checks.push(
-      `${goal ? t.ok : t.missing}: ${
-        lang === "it" ? "Cosa vuoi ottenere" : "What you want to achieve"
-      }`
-    );
-
-    checks.push(
-      `${context ? t.ok : t.missing}: ${
-        lang === "it" ? "Contesto o dati" : "Context or data"
-      }`
-    );
-
-    checks.push(
-      `${include.length ? t.ok : t.missing}: ${
-        lang === "it" ? "Cosa deve includere" : "Must include"
-      }`
-    );
+    const goalOk = !isPlaceholderOrEmpty(goalRaw, lang);
+    checks.push(`${goalOk ? t.ok : t.missing}: ${lang === "it" ? "Cosa vuoi ottenere" : "What you want to achieve"}`);
+    checks.push(`${context ? t.ok : t.missing}: ${lang === "it" ? "Contesto o dati" : "Context or data"}`);
+    checks.push(`${include.length ? t.ok : t.missing}: ${lang === "it" ? "Cosa deve includere" : "Must include"}`);
 
     checks.push("");
     checks.push(t.checkTip);
@@ -468,9 +482,7 @@
     const t = i18n[lang];
 
     if (els.copy) els.copy.textContent = t.copy;
-    if (els.outputTitle)
-      els.outputTitle.textContent =
-        tab === "prompt" ? t.titlePrompt : t.titleCheck;
+    if (els.outputTitle) els.outputTitle.textContent = tab === "prompt" ? t.titlePrompt : t.titleCheck;
 
     els.output.textContent = tab === "prompt" ? buildPrompt(lang) : buildCheck(lang);
 
@@ -478,9 +490,9 @@
     document.documentElement.lang = lang;
   }
 
-  document.querySelectorAll("input, select, textarea").forEach((el) => {
-    el.addEventListener("input", render);
-    el.addEventListener("change", render);
+  document.querySelectorAll("input, select, textarea").forEach((node) => {
+    node.addEventListener("input", render);
+    node.addEventListener("change", render);
   });
 
   if (els.tabPrompt) els.tabPrompt.addEventListener("click", () => setTab("prompt"));
