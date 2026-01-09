@@ -1,67 +1,36 @@
+/* script.js */
 (function () {
   const $ = (id) => document.getElementById(id);
 
-  function el(id) {
-    return $(id) || null;
-  }
-
   const els = {
-    lang: el("lang"),
-    goal: el("goal"),
-    context: el("context"),
-    mustInclude: el("mustInclude"),
-    mustAvoid: el("mustAvoid"),
-    format: el("format"),
-    detail: el("detail"),
-    audience: el("audience"),
+    lang: $("lang"),
+    goal: $("goal"),
+    context: $("context"),
+    mustInclude: $("mustInclude"),
+    mustAvoid: $("mustAvoid"),
+    format: $("format"),
+    detail: $("detail"),
+    audience: $("audience"),
 
-    output: el("output"),
-    outputTitle: el("outputTitle"),
-    copy: el("copy"),
-    copied: el("copied"),
+    generate: $("generate"),
+    status: $("status"),
 
-    tabPrompt: el("tabPrompt"),
-    tabCheck: el("tabCheck"),
+    output: $("output"),
+    copy: $("copy"),
+    copied: $("copied"),
   };
 
-  if (!els.output) return;
-
-  let tab = "prompt";
+  if (!els.output || !els.generate) return;
 
   const i18n = {
     it: {
-      titlePrompt: "Da incollare su AI",
-      titleCheck: "Check rapido",
-      copy: "Copia",
+      warnTitle: "Attenzione",
+      warnBody:
+        "Non hai compilato tutti i campi. Questo potrebbe generare un prompt più generico. Vuoi generarlo lo stesso?",
       copied: "Copiato",
       copyFail: "Non riesco a copiare automaticamente. Seleziona e copia manualmente.",
-      none: "Nessuno",
-      missing: "Manca",
-      ok: "Ok",
-
-      promptHeader: "ISTRUZIONI PER L’AI",
-      interpretationHeader: "INTERPRETAZIONE AUTOMATICA",
-      userHeader: "RICHIESTA UTENTE",
-      constraintsHeader: "VINCOLI",
-      outputHeader: "FORMATO OUTPUT",
-
-      baseRole:
-        "Sei un assistente esperto e pragmatico. Il tuo compito è aiutare l’utente a ottenere un risultato concreto e utilizzabile.",
-      noInvent:
-        "Non inventare dati, nomi, numeri o promesse. Se qualcosa non è noto, dichiaralo esplicitamente oppure usa segnaposto chiari tra parentesi quadre.",
-      askThenAnswer:
-        "Se la richiesta è vaga o incompleta, fai prima fino a 3 domande mirate e semplici. Dopo le risposte, fornisci la risposta finale completa.",
-      stillProvideDraft:
-        "Se l’utente non risponde alle domande, produci comunque una bozza utile con segnaposto e assunzioni dichiarate in modo trasparente.",
-      questionStyle:
-        "Quando fai domande, preferisci opzioni a scelta (A/B/C) o domande chiuse. Usa frasi semplici.",
-
-      detailMap: {
-        fast: "Risposta veloce ed essenziale",
-        normal: "Risposta completa ma sintetica",
-        deep: "Risposta molto dettagliata, con esempi",
-      },
-
+      generated: "Prompt generato",
+      nothing: "nessuno",
       formatMap: {
         plain: "Testo semplice",
         steps: "Passi da seguire",
@@ -71,48 +40,20 @@
         post: "Post",
         other: "Formato personalizzato",
       },
-
-      emptyOutputDirective:
-        "Se la richiesta dell’utente è assente o troppo poco chiara, il tuo output deve seguire questo ordine:\n1) Fai 3 domande semplici con opzioni A/B/C\n2) Proponi 3 interpretazioni possibili della richiesta (cosa potrebbe voler ottenere)\n3) Fornisci una bozza generica ma utile, con segnaposto e assunzioni dichiarate",
-
-      checkTitle: "Check rapido prima di incollare su AI",
-      checkTip:
-        "Suggerimento: per ottenere un risultato migliore, aggiungi un esempio o un testo di partenza nel campo “Che cosa hai già”. Anche 3 righe aiutano molto.",
+      detailMap: {
+        fast: "Risposta veloce ed essenziale",
+        normal: "Risposta completa ma sintetica",
+        deep: "Risposta molto dettagliata, con esempi",
+      },
     },
-
     en: {
-      titlePrompt: "To paste into AI",
-      titleCheck: "Quick check",
-      copy: "Copy",
+      warnTitle: "Warning",
+      warnBody:
+        "You did not fill in all fields. This may generate a more generic prompt. Do you want to generate it anyway?",
       copied: "Copied",
       copyFail: "Unable to copy automatically. Please select and copy manually.",
-      none: "None",
-      missing: "Missing",
-      ok: "Ok",
-
-      promptHeader: "INSTRUCTIONS FOR THE AI",
-      interpretationHeader: "AUTO INTERPRETATION",
-      userHeader: "USER REQUEST",
-      constraintsHeader: "CONSTRAINTS",
-      outputHeader: "OUTPUT FORMAT",
-
-      baseRole:
-        "You are an expert, pragmatic assistant. Your task is to help the user achieve a concrete, usable outcome.",
-      noInvent:
-        "Do not invent data, names, numbers, or promises. If something is unknown, say so clearly or use clear placeholders in square brackets.",
-      askThenAnswer:
-        "If the request is vague or incomplete, ask up to 3 targeted, simple questions first. After the answers, provide the complete final result.",
-      stillProvideDraft:
-        "If the user does not answer the questions, still produce a useful draft with placeholders and clearly stated assumptions.",
-      questionStyle:
-        "When asking questions, prefer multiple-choice options (A/B/C) or closed questions. Use simple language.",
-
-      detailMap: {
-        fast: "Fast and essential",
-        normal: "Complete but concise",
-        deep: "Very detailed, with examples",
-      },
-
+      generated: "Prompt generated",
+      nothing: "none",
       formatMap: {
         plain: "Plain text",
         steps: "Step by step",
@@ -122,22 +63,20 @@
         post: "Post",
         other: "Custom format",
       },
-
-      emptyOutputDirective:
-        "If the user request is missing or too unclear, your output must follow this order:\n1) Ask 3 simple questions with A/B/C options\n2) Propose 3 possible interpretations of what the user might want\n3) Provide a generic but useful draft, with placeholders and clearly stated assumptions",
-
-      checkTitle: "Quick check before pasting into AI",
-      checkTip:
-        "Tip: for better results, add an example or a starting text into “What you already have”. Even 3 lines help a lot.",
+      detailMap: {
+        fast: "Fast and essential",
+        normal: "Complete but concise",
+        deep: "Very detailed, with examples",
+      },
     },
   };
 
-  function val(e) {
-    return e ? String(e.value || "").trim() : "";
+  function v(el) {
+    return el ? String(el.value || "").trim() : "";
   }
 
-  function listFromTextarea(e) {
-    const raw = val(e);
+  function listFromTextarea(el) {
+    const raw = v(el);
     if (!raw) return [];
     return raw
       .split("\n")
@@ -161,9 +100,7 @@
       "descrivi cosa vuoi ottenere.",
       "descrivi cosa vuoi ottenere",
       "scrivi cosa ti serve",
-      "scrivi cosa vuoi",
       "spiega cosa ti serve",
-      "spiega cosa vuoi",
     ];
     const placeholdersEn = [
       "describe what you want to achieve.",
@@ -171,7 +108,6 @@
       "write what you need",
       "explain what you need",
     ];
-
     const placeholders = lang === "it" ? placeholdersIt : placeholdersEn;
 
     if (placeholders.includes(g)) return true;
@@ -224,7 +160,6 @@
 
     if (/\b(email|mail)\b/.test(g)) return "email";
     if (/\b(post|instagram|linkedin|facebook|tiktok)\b/.test(g)) return "post";
-    if (/\btesto\b/.test(g)) return "text";
     if (/\btraduci|traduzione|translate\b/.test(g)) return "translation";
     if (/\briassumi|riassunto|summary\b/.test(g)) return "summary";
     if (/\bidea|idee|brainstorm\b/.test(g)) return "ideas";
@@ -283,7 +218,7 @@
       if (intent === "post" || fmt === "post") {
         return [
           "La richiesta dell’utente è generica.",
-          "Interpretala come: aiutare a creare un post social chiaro, coerente e utilizzabile.",
+          "Interpretala come: aiutare a creare un post chiaro e utilizzabile.",
           "Se mancano informazioni essenziali come piattaforma, obiettivo e pubblico, fai prima fino a 3 domande mirate.",
         ].join("\n");
       }
@@ -300,15 +235,15 @@
         return [
           "La richiesta dell’utente è generica.",
           "Interpretala come: creare un riassunto chiaro, fedele e utile.",
-          "Se manca il testo da riassumere o lo scopo del riassunto, fai prima fino a 3 domande mirate.",
+          "Se manca il testo da riassumere o lo scopo, fai prima fino a 3 domande mirate.",
         ].join("\n");
       }
 
       if (intent === "ideas") {
         return [
           "La richiesta dell’utente è generica.",
-          "Interpretala come: generare idee pratiche e utilizzabili, con criteri e prossimi passi.",
-          "Se manca il contesto come settore, vincoli e obiettivo, fai prima fino a 3 domande mirate.",
+          "Interpretala come: generare idee pratiche con criteri e prossimi passi.",
+          "Se manca contesto come settore, vincoli e obiettivo, fai prima fino a 3 domande mirate.",
         ].join("\n");
       }
 
@@ -330,7 +265,7 @@
     if (intent === "post" || fmt === "post") {
       return [
         "The user request is generic.",
-        "Interpret it as: help create a usable social post, clear and consistent.",
+        "Interpret it as: help create a usable post, clear and consistent.",
         "If essential information is missing such as platform, goal, and audience, ask up to 3 targeted questions first.",
       ].join("\n");
     }
@@ -338,7 +273,7 @@
     if (intent === "translation") {
       return [
         "The user request is generic.",
-        "Interpret it as: translate text while preserving meaning and tone, without inventing content.",
+        "Interpret it as: translate while preserving meaning and tone, without inventing content.",
         "If source or target language is missing, ask up to 3 targeted questions first.",
       ].join("\n");
     }
@@ -371,39 +306,51 @@
     return [title, ...safe].join("\n");
   }
 
-  function buildOutputHeader(lang, t, formatKey, isEmptyRequest) {
-    const lines = [];
-
-    if (isEmptyRequest) {
-      lines.push(t.emptyOutputDirective);
-      return lines;
-    }
-
-    lines.push(
-      lang === "it"
-        ? `Formato richiesto: ${t.formatMap[formatKey]}.`
-        : `Required format: ${t.formatMap[formatKey]}.`
-    );
-
-    if (formatKey === "other") {
-      lines.push(
+  function buildOutputBlock(lang, t, formatKey, emptyRequest) {
+    if (!emptyRequest) {
+      const lines = [
         lang === "it"
-          ? "Se il formato non è chiaro, fai 1 domanda di chiarimento sul formato prima di rispondere."
-          : "If the format is unclear, ask 1 clarifying question about the format before answering."
-      );
+          ? `Formato richiesto: ${t.formatMap[formatKey]}.`
+          : `Required format: ${t.formatMap[formatKey]}.`,
+      ];
+
+      if (formatKey === "other") {
+        lines.push(
+          lang === "it"
+            ? "Se il formato non è chiaro, fai 1 domanda di chiarimento sul formato prima di rispondere."
+            : "If the format is unclear, ask 1 clarifying question about the format before answering."
+        );
+      }
+
+      return block(lang === "it" ? "FORMATO OUTPUT" : "OUTPUT FORMAT", lines);
     }
 
-    return lines;
+    const lines = [
+      lang === "it"
+        ? "La richiesta è troppo poco chiara. Segui questo ordine:"
+        : "The request is too unclear. Follow this order:",
+      lang === "it"
+        ? "1 Fai 3 domande semplici con opzioni A B C"
+        : "1 Ask 3 simple questions with A B C options",
+      lang === "it"
+        ? "2 Proponi 3 interpretazioni possibili di cosa l’utente potrebbe volere"
+        : "2 Propose 3 possible interpretations of what the user might want",
+      lang === "it"
+        ? "3 Fornisci una bozza generica ma utile con segnaposto e assunzioni dichiarate"
+        : "3 Provide a generic but useful draft with placeholders and clearly stated assumptions",
+    ];
+
+    return block(lang === "it" ? "FORMATO OUTPUT" : "OUTPUT FORMAT", lines);
   }
 
   function buildPrompt(lang) {
     const t = i18n[lang];
 
-    const goalRaw = val(els.goal);
-    const context = val(els.context);
+    const goalRaw = v(els.goal);
+    const context = v(els.context);
     const include = listFromTextarea(els.mustInclude);
     const avoid = listFromTextarea(els.mustAvoid);
-    const audience = val(els.audience);
+    const audience = v(els.audience);
 
     const formatKey = els.format ? els.format.value : "plain";
     const detailKey = els.detail ? els.detail.value : "normal";
@@ -413,25 +360,29 @@
     const userRequest = buildUserRequest(lang, goalRaw);
     const autoInterpretation = buildAutoInterpretation(lang, goalRaw, formatKey);
 
-    const parts = [];
+    const instructionsTitle = lang === "it" ? "ISTRUZIONI PER L’AI" : "INSTRUCTIONS FOR THE AI";
+    const interpretationTitle = lang === "it" ? "INTERPRETAZIONE AUTOMATICA" : "AUTO INTERPRETATION";
+    const requestTitle = lang === "it" ? "RICHIESTA UTENTE" : "USER REQUEST";
+    const constraintsTitle = lang === "it" ? "VINCOLI" : "CONSTRAINTS";
 
-    parts.push(
-      block(t.promptHeader, [
-        t.baseRole,
-        t.noInvent,
-        t.askThenAnswer,
-        t.stillProvideDraft,
-        t.questionStyle,
-        "",
-        lang === "it"
-          ? `Livello di dettaglio: ${t.detailMap[detailKey]}.`
-          : `Detail level: ${t.detailMap[detailKey]}.`,
-      ])
-    );
-
-    parts.push("");
-    parts.push(block(t.interpretationHeader, [autoInterpretation]));
-    parts.push("");
+    const instructionsLines =
+      lang === "it"
+        ? [
+            "Sei un assistente esperto e pragmatico. Il tuo compito è aiutare l’utente a ottenere un risultato concreto e utilizzabile.",
+            "Non inventare dati, nomi, numeri o promesse. Se qualcosa non è noto, dichiaralo esplicitamente oppure usa segnaposto chiari tra parentesi quadre.",
+            "Se la richiesta è vaga o incompleta, fai prima fino a 3 domande mirate e semplici. Dopo le risposte, fornisci la risposta finale completa.",
+            "Se l’utente non risponde alle domande, produci comunque una bozza utile con segnaposto e assunzioni dichiarate in modo trasparente.",
+            "Quando fai domande, preferisci opzioni a scelta A B C o domande chiuse. Usa frasi semplici.",
+            `Livello di dettaglio: ${t.detailMap[detailKey]}.`,
+          ]
+        : [
+            "You are an expert, pragmatic assistant. Your task is to help the user achieve a concrete, usable outcome.",
+            "Do not invent data, names, numbers, or promises. If something is unknown, say so clearly or use clear placeholders in square brackets.",
+            "If the request is vague or incomplete, ask up to 3 targeted, simple questions first. After the answers, provide the complete final result.",
+            "If the user does not answer the questions, still produce a useful draft with placeholders and clearly stated assumptions.",
+            "When asking questions, prefer multiple choice A B C or closed questions. Use simple language.",
+            `Detail level: ${t.detailMap[detailKey]}.`,
+          ];
 
     const contextLine = context
       ? lang === "it"
@@ -447,101 +398,106 @@
         : `Audience or recipient: ${audience}.`
       : "";
 
-    parts.push(block(t.userHeader, [userRequest, audienceLine, contextLine]));
-    parts.push("");
-
     const includeLine = include.length
       ? lang === "it"
         ? `Deve includere: ${include.join("; ")}.`
         : `Must include: ${include.join("; ")}.`
       : lang === "it"
-        ? `Deve includere: ${t.none}.`
-        : `Must include: ${t.none}.`;
+        ? `Deve includere: ${t.nothing}.`
+        : `Must include: ${t.nothing}.`;
 
     const avoidLine = avoid.length
       ? lang === "it"
         ? `Deve evitare: ${avoid.join("; ")}.`
         : `Must avoid: ${avoid.join("; ")}.`
       : lang === "it"
-        ? `Deve evitare: ${t.none}.`
-        : `Must avoid: ${t.none}.`;
+        ? `Deve evitare: ${t.nothing}.`
+        : `Must avoid: ${t.nothing}.`;
 
-    parts.push(block(t.constraintsHeader, [includeLine, avoidLine]));
+    const parts = [];
+    parts.push(block(instructionsTitle, instructionsLines));
     parts.push("");
-
-    const outLines = buildOutputHeader(lang, t, formatKey, emptyRequest);
-    parts.push(block(t.outputHeader, outLines));
+    parts.push(block(interpretationTitle, [autoInterpretation]));
+    parts.push("");
+    parts.push(block(requestTitle, [userRequest, audienceLine, contextLine].filter(Boolean)));
+    parts.push("");
+    parts.push(block(constraintsTitle, [includeLine, avoidLine]));
+    parts.push("");
+    parts.push(buildOutputBlock(lang, t, formatKey, emptyRequest));
 
     return parts.join("\n\n");
   }
 
-  function buildCheck(lang) {
-    const t = i18n[lang];
-
-    const goalRaw = val(els.goal);
-    const context = val(els.context);
-    const include = listFromTextarea(els.mustInclude);
-
-    const checks = [];
-    checks.push(t.checkTitle);
-    checks.push("");
-
-    const goalOk = !isPlaceholderOrEmpty(goalRaw, lang);
-    checks.push(`${goalOk ? t.ok : t.missing}: ${lang === "it" ? "Cosa vuoi ottenere" : "What you want to achieve"}`);
-    checks.push(`${context ? t.ok : t.missing}: ${lang === "it" ? "Contesto o dati" : "Context or data"}`);
-    checks.push(`${include.length ? t.ok : t.missing}: ${lang === "it" ? "Cosa deve includere" : "Must include"}`);
-
-    checks.push("");
-    checks.push(t.checkTip);
-
-    return checks.join("\n");
+  function missingFields() {
+    const missing = [];
+    if (!v(els.goal)) missing.push("goal");
+    if (!v(els.context)) missing.push("context");
+    if (!v(els.mustInclude)) missing.push("mustInclude");
+    if (!v(els.mustAvoid)) missing.push("mustAvoid");
+    if (!v(els.audience)) missing.push("audience");
+    return missing;
   }
 
-  function setTab(next) {
-    tab = next;
-
-    if (els.tabPrompt) els.tabPrompt.classList.toggle("active", tab === "prompt");
-    if (els.tabCheck) els.tabCheck.classList.toggle("active", tab === "check");
-
-    render();
+  function clearStatus() {
+    if (els.status) els.status.textContent = "";
+    if (els.copied) els.copied.textContent = "";
   }
 
-  function render() {
+  function setGeneratedState(on) {
+    els.copy.disabled = !on;
+  }
+
+  function generate() {
+    clearStatus();
+
     const lang = els.lang ? els.lang.value : "it";
     const t = i18n[lang];
 
-    if (els.copy) els.copy.textContent = t.copy;
-    if (els.outputTitle) els.outputTitle.textContent = tab === "prompt" ? t.titlePrompt : t.titleCheck;
+    const missing = missingFields();
+    if (missing.length > 0) {
+      const ok = window.confirm(t.warnBody);
+      if (!ok) return;
+    }
 
-    els.output.textContent = tab === "prompt" ? buildPrompt(lang) : buildCheck(lang);
+    const prompt = buildPrompt(lang);
+    els.output.textContent = prompt;
+    setGeneratedState(true);
 
-    if (els.copied) els.copied.textContent = "";
-    document.documentElement.lang = lang;
+    if (els.status) {
+      els.status.textContent = t.generated;
+      setTimeout(() => {
+        if (els.status) els.status.textContent = "";
+      }, 1200);
+    }
   }
 
-  document.querySelectorAll("input, select, textarea").forEach((node) => {
-    node.addEventListener("input", render);
-    node.addEventListener("change", render);
-  });
+  async function copyOutput() {
+    clearStatus();
 
-  if (els.tabPrompt) els.tabPrompt.addEventListener("click", () => setTab("prompt"));
-  if (els.tabCheck) els.tabCheck.addEventListener("click", () => setTab("check"));
+    const lang = els.lang ? els.lang.value : "it";
+    const t = i18n[lang];
 
-  if (els.copy) {
-    els.copy.addEventListener("click", async () => {
-      const lang = els.lang ? els.lang.value : "it";
-      const t = i18n[lang];
-      try {
-        await navigator.clipboard.writeText(els.output.textContent || "");
-        if (els.copied) els.copied.textContent = t.copied;
-        setTimeout(() => {
-          if (els.copied) els.copied.textContent = "";
-        }, 1200);
-      } catch {
-        alert(t.copyFail);
-      }
+    try {
+      await navigator.clipboard.writeText(els.output.textContent || "");
+      if (els.copied) els.copied.textContent = t.copied;
+      setTimeout(() => {
+        if (els.copied) els.copied.textContent = "";
+      }, 1200);
+    } catch {
+      alert(t.copyFail);
+    }
+  }
+
+  els.generate.addEventListener("click", generate);
+  els.copy.addEventListener("click", copyOutput);
+
+  if (els.lang) {
+    els.lang.addEventListener("change", () => {
+      clearStatus();
+      document.documentElement.lang = els.lang.value || "it";
     });
   }
 
-  setTab("prompt");
+  setGeneratedState(false);
+  document.documentElement.lang = els.lang ? els.lang.value : "it";
 })();
