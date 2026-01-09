@@ -1,392 +1,233 @@
-/* script.js VERSIONE AGGIORNATA E DAVVERO DIVERSA */
 (function () {
   const $ = (id) => document.getElementById(id);
 
   const els = {
     lang: $("lang"),
-    role: $("role"),
-    recipient: $("recipient"),
     goal: $("goal"),
-    tone: $("tone"),
-    length: $("length"),
-    name: $("name"),
-    topic: $("topic"),
+    context: $("context"),
     mustInclude: $("mustInclude"),
     mustAvoid: $("mustAvoid"),
-    extraInfo: $("extraInfo"),
-    cta: $("cta"),
-    clarify: $("clarify"),
+    format: $("format"),
+    detail: $("detail"),
+    audience: $("audience"),
     output: $("output"),
     outputTitle: $("outputTitle"),
     copy: $("copy"),
     copied: $("copied"),
-    tabReady: $("tabReady"),
     tabPrompt: $("tabPrompt"),
+    tabCheck: $("tabCheck"),
   };
 
-  let activeTab = "ready";
+  let tab = "prompt";
 
-  const text = {
+  const i18n = {
     it: {
-      readyTitle: "Testo pronto",
-      promptTitle: "Da incollare su AI",
+      titlePrompt: "Da incollare su AI",
+      titleCheck: "Check rapido",
       copy: "Copia",
       copied: "Copiato",
-      copyFail: "Non riesco a copiare automaticamente. Seleziona il testo e copialo manualmente.",
-      placeholdersNote: "Se un dettaglio manca, usa segnaposto come [nome], [data], [link].",
-      greeting: "Ciao",
-      closing: "Grazie",
-      subjectPrefix: "Oggetto:",
-      signatureLabel: "Firma:",
+      copyFail: "Non riesco a copiare automaticamente. Seleziona e copia manualmente.",
+      none: "Nessuno",
+      missing: "Manca",
+      ok: "Ok",
+      suggest: "Suggerimento",
+      promptHeader: "ISTRUZIONI PER L’AI",
+      userHeader: "RICHIESTA UTENTE",
+      constraintsHeader: "VINCOLI",
+      outputHeader: "FORMATO OUTPUT",
+      clarifyRule:
+        "Se qualcosa non è chiaro o mancano informazioni importanti, fai prima fino a 3 domande mirate. Poi fornisci la risposta finale.",
+      noInvent: "Non inventare dati o dettagli. Se non hai informazioni, dillo chiaramente.",
+      formatMap: {
+        plain: "Testo semplice",
+        steps: "Passi da seguire",
+        bullets: "Elenco puntato",
+        table: "Tabella",
+        email: "Email pronta",
+        post: "Post social",
+        other: "Formato personalizzato",
+      },
+      detailMap: {
+        fast: "Risposta veloce, essenziale",
+        normal: "Risposta completa ma sintetica",
+        deep: "Risposta molto dettagliata, con esempi",
+      },
     },
     en: {
-      readyTitle: "Ready to use text",
-      promptTitle: "To paste into AI",
+      titlePrompt: "To paste into AI",
+      titleCheck: "Quick check",
       copy: "Copy",
       copied: "Copied",
       copyFail: "Unable to copy automatically. Please select and copy manually.",
-      placeholdersNote: "If a detail is missing, use placeholders like [name], [date], [link].",
-      greeting: "Hi",
-      closing: "Thanks",
-      subjectPrefix: "Subject:",
-      signatureLabel: "Signature:",
-    },
-  };
-
-  const maps = {
-    it: {
-      recipient: {
-        client: "cliente",
-        recruiter: "recruiter",
-        colleague: "collega",
-        manager: "responsabile",
-        lead: "potenziale cliente",
-        other: "destinatario",
+      none: "None",
+      missing: "Missing",
+      ok: "Ok",
+      suggest: "Tip",
+      promptHeader: "INSTRUCTIONS FOR THE AI",
+      userHeader: "USER REQUEST",
+      constraintsHeader: "CONSTRAINTS",
+      outputHeader: "OUTPUT FORMAT",
+      clarifyRule:
+        "If something is unclear or important information is missing, ask up to 3 targeted questions first. Then provide the final answer.",
+      noInvent: "Do not invent data or details. If you do not know, say so clearly.",
+      formatMap: {
+        plain: "Plain text",
+        steps: "Step by step",
+        bullets: "Bullet list",
+        table: "Table",
+        email: "Ready email",
+        post: "Social post",
+        other: "Custom format",
       },
-      goalLabel: {
-        book_call: "fissare una call",
-        follow_up: "fare un follow up",
-        send_quote: "inviare un preventivo",
-        answer_complaint: "rispondere a un reclamo",
-        request_info: "chiedere informazioni",
-        other: "comunicare in modo chiaro",
-      },
-      tonePhrases: {
-        professional: "in modo professionale e chiaro",
-        friendly: "in modo amichevole e chiaro",
-        direct: "in modo diretto e chiaro",
-        persuasive: "in modo convincente e chiaro",
-        neutral: "in modo neutro e chiaro",
-      },
-    },
-    en: {
-      recipient: {
-        client: "client",
-        recruiter: "recruiter",
-        colleague: "colleague",
-        manager: "manager",
-        lead: "potential client",
-        other: "recipient",
-      },
-      goalLabel: {
-        book_call: "book a call",
-        follow_up: "send a follow up",
-        send_quote: "send a quote",
-        answer_complaint: "answer a complaint",
-        request_info: "request information",
-        other: "communicate clearly",
-      },
-      tonePhrases: {
-        professional: "in a professional and clear way",
-        friendly: "in a friendly and clear way",
-        direct: "in a direct and clear way",
-        persuasive: "in a persuasive and clear way",
-        neutral: "in a neutral and clear way",
+      detailMap: {
+        fast: "Fast and essential",
+        normal: "Complete but concise",
+        deep: "Very detailed, with examples",
       },
     },
   };
 
-  function list(textareaValue) {
-    return textareaValue
+  function list(text) {
+    return text
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean)
-      .slice(0, 6);
+      .slice(0, 8);
   }
 
-  function lengthHint(lang, length) {
-    if (lang === "it") {
-      if (length === "short") return "Mantieni tutto molto breve.";
-      if (length === "long") return "Aggiungi un po’ più contesto, ma resta semplice.";
-      return "Mantieni una lunghezza media e leggibile.";
-    }
-    if (length === "short") return "Keep it very short.";
-    if (length === "long") return "Add a bit more context, but keep it simple.";
-    return "Keep a medium length and readable.";
+  function formatBlock(title, lines) {
+    return [title, ...lines].join("\n");
   }
 
-  function buildSubject(lang, goal, topic) {
-    const base = (topic || "").trim();
-    if (lang === "it") {
-      if (base) return base.charAt(0).toUpperCase() + base.slice(1);
-      if (goal === "book_call") return "Richiesta call";
-      if (goal === "follow_up") return "Follow up";
-      if (goal === "send_quote") return "Preventivo";
-      if (goal === "answer_complaint") return "Riscontro alla tua segnalazione";
-      if (goal === "request_info") return "Richiesta informazioni";
-      return "Messaggio";
-    } else {
-      if (base) return base.charAt(0).toUpperCase() + base.slice(1);
-      if (goal === "book_call") return "Call request";
-      if (goal === "follow_up") return "Follow up";
-      if (goal === "send_quote") return "Quote";
-      if (goal === "answer_complaint") return "Reply to your message";
-      if (goal === "request_info") return "Information request";
-      return "Message";
-    }
-  }
-
-  function buildReadyEmail() {
+  function buildPrompt() {
     const lang = els.lang.value;
-    const t = text[lang];
-    const m = maps[lang];
+    const t = i18n[lang];
 
-    const recipient = m.recipient[els.recipient.value];
-    const goal = els.goal.value;
-    const tone = els.tone.value;
-    const length = els.length.value;
-
-    const topic = (els.topic.value || "").trim();
+    const goal = (els.goal.value || "").trim();
+    const context = (els.context.value || "").trim();
     const include = list(els.mustInclude.value);
     const avoid = list(els.mustAvoid.value);
-    const extra = (els.extraInfo.value || "").trim();
-    const name = (els.name.value || "").trim() || (lang === "it" ? "Nome Cognome" : "First Last");
+    const audience = (els.audience.value || "").trim();
 
-    const subject = buildSubject(lang, goal, topic);
+    const formatKey = els.format.value;
+    const detailKey = els.detail.value;
 
-    const lines = [];
+    const userRequest = goal || (lang === "it" ? "Descrivi cosa vuoi ottenere." : "Describe what you want to achieve.");
 
-    lines.push(`${t.subjectPrefix} ${subject}`);
-    lines.push("");
-    lines.push(`${t.greeting} ${lang === "it" ? "[Nome]" : "[Name]"},`);
-    lines.push("");
+    const blocks = [];
 
-    if (lang === "it") {
-      lines.push(`Ti scrivo ${m.tonePhrases[tone]} in merito a ${topic ? topic : "questa richiesta"}.`);
-      lines.push(`L’obiettivo è ${m.goalLabel[goal]}.`);
-    } else {
-      lines.push(`I am writing ${m.tonePhrases[tone]} regarding ${topic ? topic : "this request"}.`);
-      lines.push(`The goal is to ${m.goalLabel[goal]}.`);
-    }
+    blocks.push(formatBlock(t.promptHeader, [
+      lang === "it"
+        ? "Sei un assistente esperto e pragmatico. Il tuo compito è aiutarmi a ottenere un risultato concreto."
+        : "You are an expert, pragmatic assistant. Your task is to help me achieve a concrete outcome.",
+      t.noInvent,
+      t.clarifyRule,
+      "",
+      lang === "it"
+        ? `Livello di dettaglio: ${t.detailMap[detailKey]}.`
+        : `Detail level: ${t.detailMap[detailKey]}.`,
+    ]));
 
-    if (include.length) {
-      lines.push("");
-      lines.push(lang === "it" ? "Punti importanti:" : "Key points:");
-      include.forEach((item, idx) => lines.push(`${idx + 1}. ${item}`));
-    }
+    blocks.push("");
 
-    if (extra) {
-      lines.push("");
-      lines.push(lang === "it" ? `Dettagli: ${extra}` : `Details: ${extra}`);
-    }
+    blocks.push(formatBlock(t.userHeader, [
+      userRequest,
+      audience ? (lang === "it" ? `Destinatario: ${audience}.` : `Intended audience: ${audience}.`) : "",
+      context ? (lang === "it" ? `Contesto e dati che ho già: ${context}` : `Context and data I already have: ${context}`) : "",
+    ].filter(Boolean)));
 
-    if (goal === "book_call") {
-      lines.push("");
-      if (lang === "it") {
-        lines.push("Se ti va, possiamo sentirci in call. Propongo due opzioni:");
-        lines.push("1. [giorno] alle [ora]");
-        lines.push("2. [giorno] alle [ora]");
-      } else {
-        lines.push("If you are open to it, we can jump on a call. Here are two options:");
-        lines.push("1. [day] at [time]");
-        lines.push("2. [day] at [time]");
-      }
-    }
+    blocks.push("");
 
-    if (goal === "answer_complaint") {
-      lines.push("");
-      if (lang === "it") {
-        lines.push("Mi dispiace per l’inconveniente. Sto verificando e ti aggiorno con una soluzione concreta.");
-      } else {
-        lines.push("I am sorry for the inconvenience. I am checking the details and will follow up with a concrete solution.");
-      }
-    }
+    blocks.push(formatBlock(t.constraintsHeader, [
+      include.length
+        ? (lang === "it" ? `Deve includere: ${include.join("; ")}.` : `Must include: ${include.join("; ")}.`)
+        : (lang === "it" ? `Deve includere: ${t.none}.` : `Must include: ${t.none}.`),
+      avoid.length
+        ? (lang === "it" ? `Deve evitare: ${avoid.join("; ")}.` : `Must avoid: ${avoid.join("; ")}.`)
+        : (lang === "it" ? `Deve evitare: ${t.none}.` : `Must avoid: ${t.none}.`),
+    ]));
 
-    if (goal === "request_info") {
-      lines.push("");
-      if (lang === "it") {
-        lines.push("Per procedere mi servirebbero queste informazioni:");
-        lines.push("1. [informazione 1]");
-        lines.push("2. [informazione 2]");
-        lines.push("3. [informazione 3]");
-      } else {
-        lines.push("To proceed, I would need:");
-        lines.push("1. [info 1]");
-        lines.push("2. [info 2]");
-        lines.push("3. [info 3]");
-      }
-    }
+    blocks.push("");
 
-    if (avoid.length) {
-      lines.push("");
-      lines.push(lang === "it" ? "Nota per te: evita queste cose nel messaggio." : "Note to self: avoid these in the message.");
-      avoid.forEach((item, idx) => lines.push(`${idx + 1}. ${item}`));
-    }
+    blocks.push(formatBlock(t.outputHeader, [
+      lang === "it"
+        ? `Formato richiesto: ${t.formatMap[formatKey]}.`
+        : `Required format: ${t.formatMap[formatKey]}.`,
+      formatKey === "other"
+        ? (lang === "it" ? "Se il formato non è chiaro, chiedimi una domanda di chiarimento." : "If the format is unclear, ask me one clarifying question.")
+        : "",
+    ].filter(Boolean)));
 
-    lines.push("");
-    if (els.cta.checked) {
-      lines.push(lang === "it" ? "Fammi sapere come preferisci procedere." : "Let me know how you would like to proceed.");
-    } else {
-      lines.push(lang === "it" ? "Resto a disposizione." : "I remain available.");
-    }
-
-    lines.push("");
-    lines.push(lang === "it" ? `${t.closing},` : `${t.closing},`);
-    lines.push(`${t.signatureLabel} ${name}`);
-
-    lines.push("");
-    lines.push(lengthHint(lang, length));
-    lines.push(t.placeholdersNote);
-
-    return lines.join("\n");
+    return blocks.join("\n\n");
   }
 
-  function buildPasteToAIText() {
+  function buildCheck() {
     const lang = els.lang.value;
-    const m = maps[lang];
+    const t = i18n[lang];
 
-    const topic = (els.topic.value || "").trim();
+    const goal = (els.goal.value || "").trim();
+    const context = (els.context.value || "").trim();
     const include = list(els.mustInclude.value);
-    const avoid = list(els.mustAvoid.value);
-    const extra = (els.extraInfo.value || "").trim();
+    const formatKey = els.format.value;
 
-    const recipient = m.recipient[els.recipient.value];
-    const goal = m.goalLabel[els.goal.value];
-    const tone = m.tonePhrases[els.tone.value];
-    const length = els.length.value;
+    const checks = [];
 
-    const parts = [];
+    checks.push(lang === "it" ? "Check rapido prima di incollare su AI" : "Quick check before pasting into AI");
+    checks.push("");
 
-    if (lang === "it") {
-      parts.push("Sei un assistente esperto di email professionali.");
-      parts.push("Obiettivo: scrivi un’email completa e pronta da inviare.");
-      parts.push(`Destinatario: ${recipient}.`);
-      parts.push(`Cosa devo ottenere: ${goal}.`);
-      parts.push(`Stile: ${tone}.`);
-      parts.push(`Lunghezza: ${length === "short" ? "breve" : length === "long" ? "più dettagliata" : "media"}.`);
-      parts.push("");
-      parts.push(`Argomento: ${topic || "non specificato, chiedi chiarimenti prima di scrivere"}.`);
+    checks.push(`${goal ? t.ok : t.missing}: ${lang === "it" ? "Cosa vuoi ottenere" : "What you want to achieve"}`);
+    checks.push(`${context ? t.ok : t.missing}: ${lang === "it" ? "Contesto o dati che hai già" : "Context or data you already have"}`);
+    checks.push(`${include.length ? t.ok : t.missing}: ${lang === "it" ? "Cose che deve includere" : "Things it must include"}`);
+    checks.push(`${formatKey ? t.ok : t.missing}: ${lang === "it" ? "Formato desiderato" : "Desired format"}`);
 
-      if (include.length) {
-        parts.push("");
-        parts.push("Deve includere questi punti:");
-        include.forEach((item, idx) => parts.push(`${idx + 1}. ${item}`));
-      }
+    checks.push("");
+    checks.push(lang === "it"
+      ? "Suggerimento: se il risultato deve essere accurato, aggiungi esempi o un testo di partenza nel campo “Che cosa hai già”."
+      : "Tip: if accuracy matters, add examples or a starting text in “What you already have”."
+    );
 
-      if (extra) {
-        parts.push("");
-        parts.push(`Dettagli utili: ${extra}`);
-      }
-
-      if (avoid.length) {
-        parts.push("");
-        parts.push("Evita queste cose:");
-        avoid.forEach((item, idx) => parts.push(`${idx + 1}. ${item}`));
-      }
-
-      parts.push("");
-      if (els.clarify.checked) {
-        parts.push("Se mancano informazioni importanti, fai prima massimo 3 domande chiarificatrici, poi scrivi l’email.");
-      } else {
-        parts.push("Se mancano informazioni, usa segnaposto tra parentesi quadre come [nome], [data], [link].");
-      }
-
-      parts.push("Formato obbligatorio: oggetto, saluto, corpo chiaro, chiusura, firma.");
-    } else {
-      parts.push("You are an expert at professional emails.");
-      parts.push("Goal: write a complete ready to send email.");
-      parts.push(`Recipient: ${recipient}.`);
-      parts.push(`What I want to achieve: ${goal}.`);
-      parts.push(`Style: ${tone}.`);
-      parts.push(`Length: ${length === "short" ? "short" : length === "long" ? "more detailed" : "medium"}.`);
-      parts.push("");
-      parts.push(`Topic: ${topic || "not specified, ask clarifying questions first"}.`);
-
-      if (include.length) {
-        parts.push("");
-        parts.push("It must include:");
-        include.forEach((item, idx) => parts.push(`${idx + 1}. ${item}`));
-      }
-
-      if (extra) {
-        parts.push("");
-        parts.push(`Useful details: ${extra}`);
-      }
-
-      if (avoid.length) {
-        parts.push("");
-        parts.push("Avoid:");
-        avoid.forEach((item, idx) => parts.push(`${idx + 1}. ${item}`));
-      }
-
-      parts.push("");
-      if (els.clarify.checked) {
-        parts.push("If key information is missing, ask up to 3 clarifying questions first, then write the email.");
-      } else {
-        parts.push("If information is missing, use placeholders in square brackets such as [name], [date], [link].");
-      }
-
-      parts.push("Required format: subject, greeting, clear body, closing, signature.");
-    }
-
-    return parts.join("\n");
+    return checks.join("\n");
   }
 
-  function setActiveTab(tab) {
-    activeTab = tab;
-
-    els.tabReady.classList.toggle("active", tab === "ready");
+  function setTab(next) {
+    tab = next;
     els.tabPrompt.classList.toggle("active", tab === "prompt");
+    els.tabCheck.classList.toggle("active", tab === "check");
 
     const lang = els.lang.value;
-    els.outputTitle.textContent = tab === "ready" ? text[lang].readyTitle : text[lang].promptTitle;
-
+    els.outputTitle.textContent = tab === "prompt" ? i18n[lang].titlePrompt : i18n[lang].titleCheck;
     render();
-  }
-
-  function getActiveOutput() {
-    return activeTab === "ready" ? buildReadyEmail() : buildPasteToAIText();
   }
 
   function render() {
     const lang = els.lang.value;
-    els.copy.textContent = text[lang].copy;
-    els.output.textContent = getActiveOutput();
+    const t = i18n[lang];
+
+    els.copy.textContent = t.copy;
+    els.output.textContent = tab === "prompt" ? buildPrompt() : buildCheck();
     els.copied.textContent = "";
     document.documentElement.lang = lang;
   }
 
-  function attachListeners() {
-    document.querySelectorAll("input, select, textarea").forEach((el) => {
-      el.addEventListener("input", render);
-      el.addEventListener("change", render);
-    });
+  document.querySelectorAll("input, select, textarea").forEach((el) => {
+    el.addEventListener("input", render);
+    el.addEventListener("change", render);
+  });
 
-    els.tabReady.addEventListener("click", () => setActiveTab("ready"));
-    els.tabPrompt.addEventListener("click", () => setActiveTab("prompt"));
+  els.tabPrompt.addEventListener("click", () => setTab("prompt"));
+  els.tabCheck.addEventListener("click", () => setTab("check"));
 
-    els.copy.addEventListener("click", async () => {
-      const lang = els.lang.value;
-      try {
-        await navigator.clipboard.writeText(els.output.textContent || "");
-        els.copied.textContent = text[lang].copied;
-        setTimeout(() => (els.copied.textContent = ""), 1200);
-      } catch {
-        alert(text[lang].copyFail);
-      }
-    });
-  }
+  els.copy.addEventListener("click", async () => {
+    const lang = els.lang.value;
+    const t = i18n[lang];
+    try {
+      await navigator.clipboard.writeText(els.output.textContent || "");
+      els.copied.textContent = t.copied;
+      setTimeout(() => (els.copied.textContent = ""), 1200);
+    } catch {
+      alert(t.copyFail);
+    }
+  });
 
-  attachListeners();
-  setActiveTab("ready");
+  setTab("prompt");
 })();
