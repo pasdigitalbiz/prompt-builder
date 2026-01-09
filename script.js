@@ -1,3 +1,4 @@
+/* script.js VERSIONE AGGIORNATA E DAVVERO DIVERSA */
 (function () {
   const $ = (id) => document.getElementById(id);
 
@@ -16,149 +17,78 @@
     cta: $("cta"),
     clarify: $("clarify"),
     output: $("output"),
+    outputTitle: $("outputTitle"),
     copy: $("copy"),
     copied: $("copied"),
+    tabReady: $("tabReady"),
+    tabPrompt: $("tabPrompt"),
   };
 
-  let variant = "standard";
+  let activeTab = "ready";
 
-  /* =========================
-     COPY PER UTENTE NON TECNICO
-     ========================= */
-
-  const copy = {
+  const text = {
     it: {
-      titleReady: "TESTO PRONTO",
-      titlePrompt: "VERSIONE DA INCOLLARE SU CHATGPT",
-
-      introReady:
-        "Usa questo testo così com’è. Puoi copiarlo e inviarlo direttamente.",
-      introPrompt:
-        "Se preferisci usare ChatGPT o un’altra AI, copia questo testo e incollalo lì.",
-
-      assistantRole:
-        "Sei un assistente esperto di scrittura professionale. Aiuta a scrivere email chiare, educate e orientate al risultato.",
-
-      noInvent:
-        "Non inventare dati, numeri o promesse. Se qualcosa non è chiaro, gestisci l’incertezza in modo esplicito.",
-
-      clarifyOn:
-        "Se mancano informazioni importanti, fai prima poche domande di chiarimento, poi scrivi il testo completo.",
-      clarifyOff:
-        "Se mancano informazioni, usa segnaposto chiari come [nome], [data], [link].",
-
-      ctaOn:
-        "Concludi con una richiesta chiara su cosa deve fare il destinatario.",
-      ctaOff:
-        "Chiudi il messaggio in modo neutro, senza richieste esplicite.",
-
-      outputFormat:
-        "Scrivi un’email completa con:\n- oggetto\n- saluto\n- corpo chiaro\n- chiusura\n- firma",
-
-      variantShort:
-        "Scrivi una versione molto breve e diretta.",
-      variantDetailed:
-        "Dopo l’email, aggiungi una breve spiegazione del perché il testo funziona.",
-
+      readyTitle: "Testo pronto",
+      promptTitle: "Da incollare su AI",
+      copy: "Copia",
       copied: "Copiato",
-      copyFail:
-        "Non riesco a copiare automaticamente. Seleziona il testo e copialo manualmente.",
+      copyFail: "Non riesco a copiare automaticamente. Seleziona il testo e copialo manualmente.",
+      placeholdersNote: "Se un dettaglio manca, usa segnaposto come [nome], [data], [link].",
+      greeting: "Ciao",
+      closing: "Grazie",
+      subjectPrefix: "Oggetto:",
+      signatureLabel: "Firma:",
     },
-
     en: {
-      titleReady: "READY TO USE TEXT",
-      titlePrompt: "VERSION TO PASTE INTO CHATGPT",
-
-      introReady:
-        "You can use this text as it is. Just copy and send it.",
-      introPrompt:
-        "If you prefer using ChatGPT or another AI, copy and paste this text there.",
-
-      assistantRole:
-        "You are an expert in professional writing. Help write clear, polite and goal oriented emails.",
-
-      noInvent:
-        "Do not invent data, numbers or promises. Handle missing information explicitly.",
-
-      clarifyOn:
-        "If important information is missing, ask a few clarifying questions first, then write the full text.",
-      clarifyOff:
-        "If information is missing, use clear placeholders such as [name], [date], [link].",
-
-      ctaOn:
-        "End with a clear request telling the recipient what to do next.",
-      ctaOff:
-        "Close the message neutrally, without explicit requests.",
-
-      outputFormat:
-        "Write a complete email including:\n- subject\n- greeting\n- clear body\n- closing\n- signature",
-
-      variantShort:
-        "Write a very short and direct version.",
-      variantDetailed:
-        "After the email, add a short explanation of why this text works.",
-
+      readyTitle: "Ready to use text",
+      promptTitle: "To paste into AI",
+      copy: "Copy",
       copied: "Copied",
-      copyFail:
-        "Unable to copy automatically. Please select and copy manually.",
+      copyFail: "Unable to copy automatically. Please select and copy manually.",
+      placeholdersNote: "If a detail is missing, use placeholders like [name], [date], [link].",
+      greeting: "Hi",
+      closing: "Thanks",
+      subjectPrefix: "Subject:",
+      signatureLabel: "Signature:",
     },
   };
 
   const maps = {
     it: {
-      role: {
-        freelance: "Freelance",
-        employee: "Dipendente",
-        manager: "Manager",
-        founder: "Imprenditore",
-        other: "Professionista",
-      },
       recipient: {
-        client: "Cliente",
-        recruiter: "Recruiter",
-        colleague: "Collega",
-        manager: "Responsabile",
-        lead: "Potenziale cliente",
-        other: "Destinatario",
+        client: "cliente",
+        recruiter: "recruiter",
+        colleague: "collega",
+        manager: "responsabile",
+        lead: "potenziale cliente",
+        other: "destinatario",
       },
-      goal: {
+      goalLabel: {
         book_call: "fissare una call",
         follow_up: "fare un follow up",
         send_quote: "inviare un preventivo",
         answer_complaint: "rispondere a un reclamo",
-        request_info: "richiedere informazioni",
+        request_info: "chiedere informazioni",
         other: "comunicare in modo chiaro",
       },
-      tone: {
-        professional: "professionale",
-        friendly: "amichevole",
-        direct: "diretto",
-        persuasive: "convincente",
-        neutral: "neutro",
-      },
-      length: {
-        short: "breve",
-        medium: "di media lunghezza",
-        long: "più dettagliato",
+      tonePhrases: {
+        professional: "in modo professionale e chiaro",
+        friendly: "in modo amichevole e chiaro",
+        direct: "in modo diretto e chiaro",
+        persuasive: "in modo convincente e chiaro",
+        neutral: "in modo neutro e chiaro",
       },
     },
     en: {
-      role: {
-        freelance: "Freelancer",
-        employee: "Employee",
-        manager: "Manager",
-        founder: "Business owner",
-        other: "Professional",
-      },
       recipient: {
-        client: "Client",
-        recruiter: "Recruiter",
-        colleague: "Colleague",
-        manager: "Manager",
-        lead: "Potential client",
-        other: "Recipient",
+        client: "client",
+        recruiter: "recruiter",
+        colleague: "colleague",
+        manager: "manager",
+        lead: "potential client",
+        other: "recipient",
       },
-      goal: {
+      goalLabel: {
         book_call: "book a call",
         follow_up: "send a follow up",
         send_quote: "send a quote",
@@ -166,114 +96,297 @@
         request_info: "request information",
         other: "communicate clearly",
       },
-      tone: {
-        professional: "professional",
-        friendly: "friendly",
-        direct: "direct",
-        persuasive: "persuasive",
-        neutral: "neutral",
-      },
-      length: {
-        short: "short",
-        medium: "medium length",
-        long: "more detailed",
+      tonePhrases: {
+        professional: "in a professional and clear way",
+        friendly: "in a friendly and clear way",
+        direct: "in a direct and clear way",
+        persuasive: "in a persuasive and clear way",
+        neutral: "in a neutral and clear way",
       },
     },
   };
 
-  function list(text) {
-    return text
+  function list(textareaValue) {
+    return textareaValue
       .split("\n")
       .map((s) => s.trim())
       .filter(Boolean)
       .slice(0, 6);
   }
 
-  function buildPrompt() {
+  function lengthHint(lang, length) {
+    if (lang === "it") {
+      if (length === "short") return "Mantieni tutto molto breve.";
+      if (length === "long") return "Aggiungi un po’ più contesto, ma resta semplice.";
+      return "Mantieni una lunghezza media e leggibile.";
+    }
+    if (length === "short") return "Keep it very short.";
+    if (length === "long") return "Add a bit more context, but keep it simple.";
+    return "Keep a medium length and readable.";
+  }
+
+  function buildSubject(lang, goal, topic) {
+    const base = (topic || "").trim();
+    if (lang === "it") {
+      if (base) return base.charAt(0).toUpperCase() + base.slice(1);
+      if (goal === "book_call") return "Richiesta call";
+      if (goal === "follow_up") return "Follow up";
+      if (goal === "send_quote") return "Preventivo";
+      if (goal === "answer_complaint") return "Riscontro alla tua segnalazione";
+      if (goal === "request_info") return "Richiesta informazioni";
+      return "Messaggio";
+    } else {
+      if (base) return base.charAt(0).toUpperCase() + base.slice(1);
+      if (goal === "book_call") return "Call request";
+      if (goal === "follow_up") return "Follow up";
+      if (goal === "send_quote") return "Quote";
+      if (goal === "answer_complaint") return "Reply to your message";
+      if (goal === "request_info") return "Information request";
+      return "Message";
+    }
+  }
+
+  function buildReadyEmail() {
     const lang = els.lang.value;
-    const t = copy[lang];
+    const t = text[lang];
     const m = maps[lang];
 
-    const blocks = [];
+    const recipient = m.recipient[els.recipient.value];
+    const goal = els.goal.value;
+    const tone = els.tone.value;
+    const length = els.length.value;
 
-    blocks.push(t.assistantRole);
-    blocks.push("");
-
-    blocks.push(
-      `Scrivi un’email ${m.length[els.length.value]} con tono ${m.tone[els.tone.value]} per un ${m.recipient[els.recipient.value]}.`
-    );
-    blocks.push(
-      `L’obiettivo è ${m.goal[els.goal.value]}.`
-    );
-    blocks.push("");
-
-    blocks.push(`Argomento: ${els.topic.value || "—"}`);
-
+    const topic = (els.topic.value || "").trim();
     const include = list(els.mustInclude.value);
-    if (include.length) {
-      blocks.push(`Includi: ${include.join(", ")}`);
-    }
-
     const avoid = list(els.mustAvoid.value);
+    const extra = (els.extraInfo.value || "").trim();
+    const name = (els.name.value || "").trim() || (lang === "it" ? "Nome Cognome" : "First Last");
+
+    const subject = buildSubject(lang, goal, topic);
+
+    const lines = [];
+
+    lines.push(`${t.subjectPrefix} ${subject}`);
+    lines.push("");
+    lines.push(`${t.greeting} ${lang === "it" ? "[Nome]" : "[Name]"},`);
+    lines.push("");
+
+    if (lang === "it") {
+      lines.push(`Ti scrivo ${m.tonePhrases[tone]} in merito a ${topic ? topic : "questa richiesta"}.`);
+      lines.push(`L’obiettivo è ${m.goalLabel[goal]}.`);
+    } else {
+      lines.push(`I am writing ${m.tonePhrases[tone]} regarding ${topic ? topic : "this request"}.`);
+      lines.push(`The goal is to ${m.goalLabel[goal]}.`);
+    }
+
+    if (include.length) {
+      lines.push("");
+      lines.push(lang === "it" ? "Punti importanti:" : "Key points:");
+      include.forEach((item, idx) => lines.push(`${idx + 1}. ${item}`));
+    }
+
+    if (extra) {
+      lines.push("");
+      lines.push(lang === "it" ? `Dettagli: ${extra}` : `Details: ${extra}`);
+    }
+
+    if (goal === "book_call") {
+      lines.push("");
+      if (lang === "it") {
+        lines.push("Se ti va, possiamo sentirci in call. Propongo due opzioni:");
+        lines.push("1. [giorno] alle [ora]");
+        lines.push("2. [giorno] alle [ora]");
+      } else {
+        lines.push("If you are open to it, we can jump on a call. Here are two options:");
+        lines.push("1. [day] at [time]");
+        lines.push("2. [day] at [time]");
+      }
+    }
+
+    if (goal === "answer_complaint") {
+      lines.push("");
+      if (lang === "it") {
+        lines.push("Mi dispiace per l’inconveniente. Sto verificando e ti aggiorno con una soluzione concreta.");
+      } else {
+        lines.push("I am sorry for the inconvenience. I am checking the details and will follow up with a concrete solution.");
+      }
+    }
+
+    if (goal === "request_info") {
+      lines.push("");
+      if (lang === "it") {
+        lines.push("Per procedere mi servirebbero queste informazioni:");
+        lines.push("1. [informazione 1]");
+        lines.push("2. [informazione 2]");
+        lines.push("3. [informazione 3]");
+      } else {
+        lines.push("To proceed, I would need:");
+        lines.push("1. [info 1]");
+        lines.push("2. [info 2]");
+        lines.push("3. [info 3]");
+      }
+    }
+
     if (avoid.length) {
-      blocks.push(`Evita: ${avoid.join(", ")}`);
+      lines.push("");
+      lines.push(lang === "it" ? "Nota per te: evita queste cose nel messaggio." : "Note to self: avoid these in the message.");
+      avoid.forEach((item, idx) => lines.push(`${idx + 1}. ${item}`));
     }
 
-    if (els.extraInfo.value.trim()) {
-      blocks.push(`Informazioni utili: ${els.extraInfo.value.trim()}`);
+    lines.push("");
+    if (els.cta.checked) {
+      lines.push(lang === "it" ? "Fammi sapere come preferisci procedere." : "Let me know how you would like to proceed.");
+    } else {
+      lines.push(lang === "it" ? "Resto a disposizione." : "I remain available.");
     }
 
-    blocks.push("");
-    blocks.push(t.noInvent);
-    blocks.push(els.cta.checked ? t.ctaOn : t.ctaOff);
-    blocks.push(els.clarify.checked ? t.clarifyOn : t.clarifyOff);
-    blocks.push("");
-    blocks.push(t.outputFormat.replace("{name}", els.name.value || ""));
+    lines.push("");
+    lines.push(lang === "it" ? `${t.closing},` : `${t.closing},`);
+    lines.push(`${t.signatureLabel} ${name}`);
 
-    if (variant === "short") {
-      blocks.push("");
-      blocks.push(t.variantShort);
+    lines.push("");
+    lines.push(lengthHint(lang, length));
+    lines.push(t.placeholdersNote);
+
+    return lines.join("\n");
+  }
+
+  function buildPasteToAIText() {
+    const lang = els.lang.value;
+    const m = maps[lang];
+
+    const topic = (els.topic.value || "").trim();
+    const include = list(els.mustInclude.value);
+    const avoid = list(els.mustAvoid.value);
+    const extra = (els.extraInfo.value || "").trim();
+
+    const recipient = m.recipient[els.recipient.value];
+    const goal = m.goalLabel[els.goal.value];
+    const tone = m.tonePhrases[els.tone.value];
+    const length = els.length.value;
+
+    const parts = [];
+
+    if (lang === "it") {
+      parts.push("Sei un assistente esperto di email professionali.");
+      parts.push("Obiettivo: scrivi un’email completa e pronta da inviare.");
+      parts.push(`Destinatario: ${recipient}.`);
+      parts.push(`Cosa devo ottenere: ${goal}.`);
+      parts.push(`Stile: ${tone}.`);
+      parts.push(`Lunghezza: ${length === "short" ? "breve" : length === "long" ? "più dettagliata" : "media"}.`);
+      parts.push("");
+      parts.push(`Argomento: ${topic || "non specificato, chiedi chiarimenti prima di scrivere"}.`);
+
+      if (include.length) {
+        parts.push("");
+        parts.push("Deve includere questi punti:");
+        include.forEach((item, idx) => parts.push(`${idx + 1}. ${item}`));
+      }
+
+      if (extra) {
+        parts.push("");
+        parts.push(`Dettagli utili: ${extra}`);
+      }
+
+      if (avoid.length) {
+        parts.push("");
+        parts.push("Evita queste cose:");
+        avoid.forEach((item, idx) => parts.push(`${idx + 1}. ${item}`));
+      }
+
+      parts.push("");
+      if (els.clarify.checked) {
+        parts.push("Se mancano informazioni importanti, fai prima massimo 3 domande chiarificatrici, poi scrivi l’email.");
+      } else {
+        parts.push("Se mancano informazioni, usa segnaposto tra parentesi quadre come [nome], [data], [link].");
+      }
+
+      parts.push("Formato obbligatorio: oggetto, saluto, corpo chiaro, chiusura, firma.");
+    } else {
+      parts.push("You are an expert at professional emails.");
+      parts.push("Goal: write a complete ready to send email.");
+      parts.push(`Recipient: ${recipient}.`);
+      parts.push(`What I want to achieve: ${goal}.`);
+      parts.push(`Style: ${tone}.`);
+      parts.push(`Length: ${length === "short" ? "short" : length === "long" ? "more detailed" : "medium"}.`);
+      parts.push("");
+      parts.push(`Topic: ${topic || "not specified, ask clarifying questions first"}.`);
+
+      if (include.length) {
+        parts.push("");
+        parts.push("It must include:");
+        include.forEach((item, idx) => parts.push(`${idx + 1}. ${item}`));
+      }
+
+      if (extra) {
+        parts.push("");
+        parts.push(`Useful details: ${extra}`);
+      }
+
+      if (avoid.length) {
+        parts.push("");
+        parts.push("Avoid:");
+        avoid.forEach((item, idx) => parts.push(`${idx + 1}. ${item}`));
+      }
+
+      parts.push("");
+      if (els.clarify.checked) {
+        parts.push("If key information is missing, ask up to 3 clarifying questions first, then write the email.");
+      } else {
+        parts.push("If information is missing, use placeholders in square brackets such as [name], [date], [link].");
+      }
+
+      parts.push("Required format: subject, greeting, clear body, closing, signature.");
     }
 
-    if (variant === "detailed") {
-      blocks.push("");
-      blocks.push(t.variantDetailed);
-    }
+    return parts.join("\n");
+  }
 
-    return blocks.join("\n");
+  function setActiveTab(tab) {
+    activeTab = tab;
+
+    els.tabReady.classList.toggle("active", tab === "ready");
+    els.tabPrompt.classList.toggle("active", tab === "prompt");
+
+    const lang = els.lang.value;
+    els.outputTitle.textContent = tab === "ready" ? text[lang].readyTitle : text[lang].promptTitle;
+
+    render();
+  }
+
+  function getActiveOutput() {
+    return activeTab === "ready" ? buildReadyEmail() : buildPasteToAIText();
   }
 
   function render() {
-    els.output.textContent = buildPrompt();
+    const lang = els.lang.value;
+    els.copy.textContent = text[lang].copy;
+    els.output.textContent = getActiveOutput();
     els.copied.textContent = "";
+    document.documentElement.lang = lang;
   }
 
-  document.querySelectorAll("input, select, textarea").forEach((el) => {
-    el.addEventListener("input", render);
-    el.addEventListener("change", render);
-  });
-
-  document.querySelectorAll(".pill").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document
-        .querySelectorAll(".pill")
-        .forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      variant = btn.dataset.variant;
-      render();
+  function attachListeners() {
+    document.querySelectorAll("input, select, textarea").forEach((el) => {
+      el.addEventListener("input", render);
+      el.addEventListener("change", render);
     });
-  });
 
-  els.copy.addEventListener("click", async () => {
-    const lang = els.lang.value;
-    try {
-      await navigator.clipboard.writeText(els.output.textContent || "");
-      els.copied.textContent = copy[lang].copied;
-      setTimeout(() => (els.copied.textContent = ""), 1200);
-    } catch {
-      alert(copy[lang].copyFail);
-    }
-  });
+    els.tabReady.addEventListener("click", () => setActiveTab("ready"));
+    els.tabPrompt.addEventListener("click", () => setActiveTab("prompt"));
 
-  render();
+    els.copy.addEventListener("click", async () => {
+      const lang = els.lang.value;
+      try {
+        await navigator.clipboard.writeText(els.output.textContent || "");
+        els.copied.textContent = text[lang].copied;
+        setTimeout(() => (els.copied.textContent = ""), 1200);
+      } catch {
+        alert(text[lang].copyFail);
+      }
+    });
+  }
+
+  attachListeners();
+  setActiveTab("ready");
 })();
