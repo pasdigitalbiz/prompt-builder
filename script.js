@@ -53,6 +53,8 @@
         "Se la richiesta è vaga o incompleta, fai prima fino a 3 domande mirate e semplici. Dopo le risposte, fornisci la risposta finale completa.",
       stillProvideDraft:
         "Se l’utente non risponde alle domande, produci comunque una bozza utile con segnaposto e assunzioni dichiarate in modo trasparente.",
+      questionStyle:
+        "Quando fai domande, preferisci opzioni a scelta (A/B/C) o domande chiuse. Usa frasi semplici.",
 
       detailMap: {
         fast: "Risposta veloce ed essenziale",
@@ -69,6 +71,9 @@
         post: "Post",
         other: "Formato personalizzato",
       },
+
+      emptyOutputDirective:
+        "Se la richiesta dell’utente è assente o troppo poco chiara, il tuo output deve seguire questo ordine:\n1) Fai 3 domande semplici con opzioni A/B/C\n2) Proponi 3 interpretazioni possibili della richiesta (cosa potrebbe voler ottenere)\n3) Fornisci una bozza generica ma utile, con segnaposto e assunzioni dichiarate",
 
       checkTitle: "Check rapido prima di incollare su AI",
       checkTip:
@@ -99,6 +104,8 @@
         "If the request is vague or incomplete, ask up to 3 targeted, simple questions first. After the answers, provide the complete final result.",
       stillProvideDraft:
         "If the user does not answer the questions, still produce a useful draft with placeholders and clearly stated assumptions.",
+      questionStyle:
+        "When asking questions, prefer multiple-choice options (A/B/C) or closed questions. Use simple language.",
 
       detailMap: {
         fast: "Fast and essential",
@@ -115,6 +122,9 @@
         post: "Post",
         other: "Custom format",
       },
+
+      emptyOutputDirective:
+        "If the user request is missing or too unclear, your output must follow this order:\n1) Ask 3 simple questions with A/B/C options\n2) Propose 3 possible interpretations of what the user might want\n3) Provide a generic but useful draft, with placeholders and clearly stated assumptions",
 
       checkTitle: "Quick check before pasting into AI",
       checkTip:
@@ -147,13 +157,24 @@
     const g = normalize(goalText);
     if (!g) return true;
 
-    const placeholdersIt = ["descrivi cosa vuoi ottenere.", "descrivi cosa vuoi ottenere", "scrivi cosa ti serve", "scrivi cosa vuoi"];
-    const placeholdersEn = ["describe what you want to achieve.", "describe what you want to achieve", "write what you need"];
+    const placeholdersIt = [
+      "descrivi cosa vuoi ottenere.",
+      "descrivi cosa vuoi ottenere",
+      "scrivi cosa ti serve",
+      "scrivi cosa vuoi",
+      "spiega cosa ti serve",
+      "spiega cosa vuoi",
+    ];
+    const placeholdersEn = [
+      "describe what you want to achieve.",
+      "describe what you want to achieve",
+      "write what you need",
+      "explain what you need",
+    ];
 
     const placeholders = lang === "it" ? placeholdersIt : placeholdersEn;
 
     if (placeholders.includes(g)) return true;
-
     if (g.length < 3) return true;
 
     return false;
@@ -350,6 +371,31 @@
     return [title, ...safe].join("\n");
   }
 
+  function buildOutputHeader(lang, t, formatKey, isEmptyRequest) {
+    const lines = [];
+
+    if (isEmptyRequest) {
+      lines.push(t.emptyOutputDirective);
+      return lines;
+    }
+
+    lines.push(
+      lang === "it"
+        ? `Formato richiesto: ${t.formatMap[formatKey]}.`
+        : `Required format: ${t.formatMap[formatKey]}.`
+    );
+
+    if (formatKey === "other") {
+      lines.push(
+        lang === "it"
+          ? "Se il formato non è chiaro, fai 1 domanda di chiarimento sul formato prima di rispondere."
+          : "If the format is unclear, ask 1 clarifying question about the format before answering."
+      );
+    }
+
+    return lines;
+  }
+
   function buildPrompt(lang) {
     const t = i18n[lang];
 
@@ -362,6 +408,8 @@
     const formatKey = els.format ? els.format.value : "plain";
     const detailKey = els.detail ? els.detail.value : "normal";
 
+    const emptyRequest = isPlaceholderOrEmpty(goalRaw, lang);
+
     const userRequest = buildUserRequest(lang, goalRaw);
     const autoInterpretation = buildAutoInterpretation(lang, goalRaw, formatKey);
 
@@ -373,6 +421,7 @@
         t.noInvent,
         t.askThenAnswer,
         t.stillProvideDraft,
+        t.questionStyle,
         "",
         lang === "it"
           ? `Livello di dettaglio: ${t.detailMap[detailKey]}.`
@@ -398,14 +447,7 @@
         : `Audience or recipient: ${audience}.`
       : "";
 
-    parts.push(
-      block(t.userHeader, [
-        userRequest,
-        audienceLine,
-        contextLine,
-      ])
-    );
-
+    parts.push(block(t.userHeader, [userRequest, audienceLine, contextLine]));
     parts.push("");
 
     const includeLine = include.length
@@ -427,21 +469,8 @@
     parts.push(block(t.constraintsHeader, [includeLine, avoidLine]));
     parts.push("");
 
-    const formatLines = [
-      lang === "it"
-        ? `Formato richiesto: ${t.formatMap[formatKey]}.`
-        : `Required format: ${t.formatMap[formatKey]}.`,
-    ];
-
-    if (formatKey === "other") {
-      formatLines.push(
-        lang === "it"
-          ? "Se il formato non è chiaro, fai 1 domanda di chiarimento sul formato prima di rispondere."
-          : "If the format is unclear, ask 1 clarifying question about the format before answering."
-      );
-    }
-
-    parts.push(block(t.outputHeader, formatLines));
+    const outLines = buildOutputHeader(lang, t, formatKey, emptyRequest);
+    parts.push(block(t.outputHeader, outLines));
 
     return parts.join("\n\n");
   }
